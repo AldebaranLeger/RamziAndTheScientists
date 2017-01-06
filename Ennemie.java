@@ -10,7 +10,7 @@ import org.newdawn.slick.tiled.TiledMap;
 
 public class Ennemie {
 	
-	private float x = 200, y=200;
+	private float x, y;
 	private int direction = 2;
 	private boolean moving = true;
 	private Animation[] animations = new Animation[8];
@@ -18,9 +18,11 @@ public class Ennemie {
 	private int maxDeplacement;
 	private int compteurPas = 0;
 	
-	public Ennemie(TiledMap map)
+	public Ennemie(TiledMap map, float x, float y)
 	{
 		this.map = map;
+		this.x = x;
+		this.y = y;
 	}
 	
 	public void init() throws SlickException {

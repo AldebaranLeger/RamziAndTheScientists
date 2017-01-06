@@ -13,7 +13,7 @@ public class Map {
 	}
 
 	public void init() throws SlickException {
-		this.tiledMap = new TiledMap("ressources/map/map_niv1.tmx");
+		this.tiledMap = new TiledMap("ressources/map/map_test3.tmx");
 	}
 	
 	public boolean isCollision(float x, float y) {

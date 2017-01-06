@@ -67,14 +67,13 @@ public class Ramzi {
 		      this.x = futurX;
 		      this.y = futurY;
 			updateDirection();
-			switch(this.direction) {
+			/*switch(this.direction) {
 			//0.1f correspond à la vitesse et delta le temps écoulé
-	
-				case 0 : this.y -= .15f * delta ; break;
-				case 1 : this.x -= .15f * delta ; break;
-				case 2 : this.y += .15f * delta *10; break;
-				case 3 : this.x += .15f * delta*10; break;
-			}
+				case 0 : this.y -= .1f * delta ; break;
+				case 1 : this.x -= .1f * delta ; break;
+				case 2 : this.y += .1f * delta *10; break;
+				case 3 : this.x += .1f * delta*10; break;
+			}*/
 		}
 	}
 	
@@ -100,12 +99,7 @@ public class Ramzi {
 	}
 	
 	public void keyReleased(int key, char c) {
-		 switch (key) {
-		  case Input.KEY_UP:
-		  case Input.KEY_DOWN:  this.setDy(0); break;
-		  case Input.KEY_LEFT:
-		  case Input.KEY_RIGHT: this.setDx(0); break;
-		  }
+		stopMoving();
 	}
 
 	
@@ -121,7 +115,7 @@ public class Ramzi {
 		  return this.x + .1f * delta * this.dx;
 		}
 
-	private float getFuturY(int delta) {
+		private float getFuturY(int delta) {
 		  float futurY = this.y + .1f * delta * this.dy;
 		 
 		  return futurY;

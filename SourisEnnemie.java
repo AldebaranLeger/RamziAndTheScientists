@@ -10,9 +10,9 @@ import org.newdawn.slick.tiled.TiledMap;
 
 public class SourisEnnemie {
 	
-	private float x = 200, y=200;
+	private float x = 560, y=180;
+	private float dx = 0, dy = 0;
 	private int direction;
-	private boolean moving = false;
 	private Animation[] animations = new Animation[8];
 	private TiledMap map;
 	
@@ -43,35 +43,47 @@ public class SourisEnnemie {
 	public void render(Graphics g) throws SlickException  {
 		g.setColor(new Color(0,0,0, 0.5f));
 		g.fillOval(x - 16, y -8, 32, 16); //création d'une ombre
-		g.drawAnimation(animations[direction + (moving ? 4 : 0)], x-32, y-60);
+		g.drawAnimation(animations[direction + (isMoving() ? 4 : 0)], x-32, y-60);
 	
 	}
 	
 	public void update(int delta) throws SlickException {
-		if(this.moving) {
+		if(this.isMoving()) {
 			//on calcule les futures coordonnées et si il y a une tuile à cet endroit
 			// c'est qu'il y a collision et on stop le déplacement
 			float futurX =  getFuturX(delta);
 	        float futurY =  getFuturY(delta);
-			/*switch(this.direction) {
-			//0.1f correspond à la vitesse et delta le temps écoulé
-				case 0 : futurY = this.y - .1f * delta ; break;
-				case 1 : futurX = this.x - .1f * delta ; break;
-				case 2 : futurY = this.y + .1f * delta; break;
-				case 3 : futurX = this.x + .1f * delta; break;
-			}*/
 			
 			//on cherche s'il y a une tuile collision à ces coordonnées
 			boolean collision = isCollision(futurX, futurY);
 			if(collision) {
-				this.moving = false;
+				this.stopMoving();
 			} else {
 				this.x = futurX;
 				this.y = futurY;
 			}
+			
+			if (this.isMoving()) {
+			    // ajouter la mise de la direction ici
+			    updateDirection();
+			    // suite de la mise à jour cf leçon 10
+			  }
 		}
 	}
 	
+	private void updateDirection() {
+		if (dx > 0 && dx >= Math.abs(dy)) { 
+		    direction = 3;
+		  } else if (dx < 0 && -dx >= Math.abs(dy)) {
+		    direction = 1;
+		  } else if (dy < 0) { 
+		    direction = 0;
+		  } else { 
+		    direction = 2;
+		  } 
+		
+	}
+
 	public boolean isCollision(float x, float y) {
 	    int tileW = this.map.getTileWidth();
 	    int tileH = this.map.getTileHeight();
@@ -86,43 +98,46 @@ public class SourisEnnemie {
 	  }
 	
 	private float getFuturX(int delta) {
-		  float futurX = this.x;
-		  switch (this.direction) {
-		  case 1: futurX = this.x - .1f * delta; break;
-		  case 3: futurX = this.x + .1f * delta; break;
-		  }
-		  return futurX;
+			return this.x + .1f * delta * this.dx *2;
 		}
 
-		private float getFuturY(int delta) {
-		  float futurY = this.y;
-		  switch (this.direction) {
-		  case 0: futurY = this.y - .1f * delta; break;
-		  case 2: futurY = this.y + .1f * delta; break;
-		  }
-		  return futurY;
-		}
-	
-	public void keyPressed(int key, char c) {
-		switch (key) {
-		case Input.KEY_UP : this.direction = 0; this.moving = true; break;
-		case Input.KEY_LEFT : this.direction = 1 ; this.moving = true; break;
-		case Input.KEY_DOWN : this.direction = 2 ; this.moving = true ; break;
-		case Input.KEY_RIGHT : this.direction = 3 ; this.moving = true;break;
-		}
+	private float getFuturY(int delta) {
+		return this.y + .1f * delta * this.dy *2;
 	}
-	
-	public void keyReleased(int key, char c) {
-		this.moving = false;
-	}
-	
+
 	public float getX() {return x;}
+	
 	public float getY() {return y;}
+	
 	public void setX(float x) { this.x = x; }
+	
 	public void setY(float y) { this.y = y; }
+	
+	public void setDx(float dx){ this.dx = dx; };
+	
+	public void setDy(float dy){ this.dy = dy; };
+	
 	public int getDirection() { return direction; }
-	public void setDirection(int direction) { this.direction = direction; }
-	public boolean isMoving() { return moving; }
-	public void setMoving(boolean moving) { this.moving = moving; }
+	
+	public void setDirection(int direction) { 
+		this.direction = direction; 
+		  switch (direction) {
+			  // ajouter la mise à jour de dx et dy en fonction de la direction
+			  case 0: dx =  0; dy = -1; break;
+			  case 1: dx = -1; dy =  0; break;
+			  case 2: dx =  0; dy =  1; break;
+			  case 3: dx =  1; dy =  0; break; 
+			  default: dx = 0; dy =  0; break;
+		  } 
+		}
+	
+	public boolean isMoving() { 
+		return dx != 0 || dy != 0;
+	}
+	
+	public void stopMoving(){
+		dx = 0; dy = 0;
+	}
+	
 
 }
