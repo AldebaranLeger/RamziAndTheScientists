@@ -11,12 +11,13 @@ public class WindowGame extends BasicGame {
 	
 	private GameContainer container;
 	private TiledMap map;
-	private SourisEnnemie souris;
-	private Ennemie ennemie;
-	private Ennemie ennemie1;
-	private Ennemie ennemie2;
+	private Ramzi souris;
+	private Pnj pnj;
+	private Souris1 ennemie;
+	private Souris1 ennemie1;
+	private Souris2 ennemie2;
 	private Camera camera;
-	private Hud hud = new Hud();
+	//private Hud hud = new Hud();
 	
 	public WindowGame() {
 		super("Ramzi & The Scientists");
@@ -28,17 +29,21 @@ public class WindowGame extends BasicGame {
 	public void init(GameContainer container) throws SlickException {
 		this.container = container ;
 		this.map = new TiledMap("ressources/map/map_niv1.tmx");
-		souris  = new SourisEnnemie(map);
-		ennemie  = new Ennemie(map,850,200);
-		ennemie1  = new Ennemie(map,500,500);
-		ennemie2  = new Ennemie(map,300,200);
+		souris  = new Ramzi(map);
+		pnj  = new Pnj(map,souris,650,100);
+		souris.setPnj(pnj);
+		ennemie  = new Souris1(map,850,200);
+		ennemie1  = new Souris1(map,500,500);
+		ennemie2  = new Souris2(map, souris,300,200);
 		this.souris.init();
+		this.pnj.init();
 		this.ennemie.init();
 		this.ennemie1.init();
 		this.ennemie2.init();
-		this.hud.init();
+		//this.hud.init();
 		Controle control = new Controle(souris);
 		this.container.getInput().addKeyListener(control);
+		this.container.getInput().addMouseListener(control);
 		camera = new Camera(souris);
 		
 	}
@@ -53,13 +58,14 @@ public class WindowGame extends BasicGame {
 		this.map.render(0,0,1);
 		//this.ramzi.render(g);
 		this.souris.render(g);
+		this.pnj.render(g);
 		this.ennemie.render(g);
 		this.ennemie1.render(g);
 		this.ennemie2.render(g);
 		camera.place(container, g);
 		
 		
-		this.hud.render(g);
+		//this.hud.render(g);
 	}
 	
 	/**
@@ -68,11 +74,13 @@ public class WindowGame extends BasicGame {
 	public void update(GameContainer container, int delta) throws SlickException {
 
 		this.souris.update(delta);
+		this.pnj.update(delta);
 		this.ennemie.update(delta);
 		this.ennemie1.update(delta);
 		this.ennemie2.update(delta);
 		camera.update(container);
 
+		
 	}
 	/*
 	public void keyPressed(int key, char c) {
