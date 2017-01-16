@@ -82,25 +82,8 @@ public class WindowGame extends BasicGame {
 
 		
 	}
-	/*
-	public void keyPressed(int key, char c) {
-		//this.ramzi.keyPressed(key, c);
-		this.souris.keyPressed(key, c);
-	}
-	*/
-	/**
-	 * appelée à chaque relachement de touche
-	 * @param args
-	 */
-	/*
-	public void keyReleased(int key, char c) {
-		//this.ramzi.keyReleased(key, c);
-		this.souris.keyReleased(key, c);
-		
-	}
-	*/
 	 public static void main(String[] args) throws SlickException {
-		 new AppGameContainer(new WindowGame(), 640, 480, false).start();
+		 new AppGameContainer(new WindowGame(), 800, 600, false).start();
 	 }
 
 }

@@ -15,7 +15,6 @@ public class Ramzi{
 	private Animation[] animations = new Animation[8];
 	private TiledMap map;
 	private Pnj pnj;
-	//private Point cursor;
 	
 	public Ramzi(TiledMap map) {
 		this.map = map;
@@ -23,7 +22,7 @@ public class Ramzi{
 	
 	public void init() throws SlickException {
 		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/characters.png", 64, 64);
-		this.direction =2;
+		this.direction = 2;
 		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);
 		this.animations[2] = loadAnimation(spriteSouris, 0, 1, 2);
@@ -32,7 +31,6 @@ public class Ramzi{
 		this.animations[5] = loadAnimation(spriteSouris, 1, 9, 1);
 		this.animations[6] = loadAnimation(spriteSouris, 1, 9, 2);
 		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
-
 	}
 	
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
@@ -94,19 +92,17 @@ public class Ramzi{
 	public void attack1(int mX, int mY)
 	{
 		System.out.println("Attaque 1 :\nPoint X : " + mX + "\nPoint Y : " + mY);
-		Graphics l = new Graphics();
-		l.setColor(Color.red);
-		l.drawLine(this.x,this.y,mX,mY);
 	}
 	
 	public void attack2(int mX, int mY)
 	{
-		System.out.println("Attaque 2 :\nPoint X : " + mX + "\nPoint Y : " + mY);	
+		System.out.println("Attaque 2 :\nPoint X : " + mX + "\nPoint Y : " + mY);
 	}
 	
 	public void parle()
 	{
 		pnj.setParle();
+		System.out.println(Math.cos(5.5));
 	}
 	
 	public boolean isCollision(float x, float y) {

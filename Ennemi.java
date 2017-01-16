@@ -9,31 +9,22 @@ import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.tiled.TiledMap;
 
 public abstract class Ennemi {
-	
+
 	protected float x, y;
 	protected int direction = 2;
 	protected boolean moving = false;
 	protected Animation[] animations = new Animation[8];
 	private TiledMap map;
-	protected Ramzi player;
 	protected int distanceVue;
 
-
-	public Ennemi(TiledMap m, Ramzi p, float x, float y) {
-		this.map = m;
-		this.player = p;
-		this.x = x;
-		this.y = y;
-	}
 	public Ennemi(TiledMap m, float x, float y) {
 		this.map = m;
 		this.x = x;
 		this.y = y;
 	}
 
-	public Animation[] prepareAnimation(String srcSprite) throws SlickException
-	{
-		
+	public Animation[] prepareAnimation(String srcSprite) throws SlickException {
+
 		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
 		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);
@@ -75,34 +66,46 @@ public abstract class Ennemi {
 		return collision;
 	}
 
-	protected float getFuturX(int delta) {
+	protected float getFuturX(int delta, double vitesse) {
+
 		float futurX = this.x;
 		switch (this.direction) {
 		case 1:
-			futurX = (float) (this.x - .1f * delta * 1.5);
+			futurX = (float) (this.x - .1f * delta * vitesse);
 			break;
 		case 3:
-			futurX = (float) (this.x + .1f * delta * 1.5);
+			futurX = (float) (this.x + .1f * delta * vitesse);
 			break;
 		}
 		return futurX;
 	}
 
-	protected float getFuturY(int delta) {
+	protected float getFuturY(int delta, double vitesse) {
 		float futurY = this.y;
 		switch (this.direction) {
 		case 0:
-			futurY = (float) (this.y - .1f * delta * 1.5);
+			futurY = (float) (this.y - .1f * delta * vitesse);
 			break;
 		case 2:
-			futurY = (float) (this.y + .1f * delta * 1.5);
+			futurY = (float) (this.y + .1f * delta * vitesse);
 			break;
 		}
 		return futurY;
 	}
- 
-	public float[] getVueEnnemi(int dist)
-	{
+
+	public float[] calcHitBox(float hitX, float hitY) {
+		float[] hitBox = new float[4];
+		int distHitBox;
+
+		hitBox[0] = (this.x - hitX);
+		hitBox[1] = (this.x + hitX);
+		hitBox[2] = (this.y - hitY);
+		hitBox[3] = (this.y + hitY);
+
+		return hitBox;
+	}
+
+	public float[] getVueEnnemi(int dist) {
 		float[] aireVue = new float[4];
 		this.distanceVue = dist;
 
@@ -110,13 +113,12 @@ public abstract class Ennemi {
 		aireVue[1] = (this.x + distanceVue);
 		aireVue[2] = (this.y - distanceVue);
 		aireVue[3] = (this.y + distanceVue);
-		
-		return aireVue;
-			
-	}
-	
-	public void suivrePlayer() {
 
+		return aireVue;
+
+	}
+
+	public void suivrePlayer(Ramzi player, double vitesse) {		
 		float gX, gY;
 
 		if (player.getX() > this.x)
@@ -128,24 +130,27 @@ public abstract class Ennemi {
 			gY = player.getY() - this.y;
 		else
 			gY = this.y - player.getY();
-		
-		if (gX > gY)
-		{
+
+		if (gX > gY) {
 			if (player.getX() > this.x)
 				setDirection(3);
 			if (player.getX() < this.x)
 				setDirection(1);
-		}
-		else
-		{
+		} else {
 			if (player.getY() > this.y)
 				setDirection(2);
 			if (player.getY() < this.y)
 				setDirection(0);
 		}
+
+		float diffX = player.getX() - x;
+		float diffY = player.getY() - y;
+		float angle = (float) Math.atan2(diffY, diffX);
+
+		x += Math.cos(angle) * vitesse;
+		y += Math.sin(angle) * vitesse;
 	}
 
-	
 	public float getX() {
 		return x;
 	}

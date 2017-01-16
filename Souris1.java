@@ -21,15 +21,14 @@ public class Souris1 extends Ennemi{
 	public void init() throws SlickException
 	{
 		moving = true;
-		animations = super.prepareAnimation("BODY_skeleton.png");
+		animations = super.prepareAnimation("characters.png");
 	}
 	
 	public void update(int delta) throws SlickException
 	{
 		
-		float futurX =  getFuturX(delta);
-        float futurY =  getFuturY(delta);
-		//maxDeplacement = (int) (Math.random()*(400-100)+100);
+		float futurX =  getFuturX(delta, 1);
+        float futurY =  getFuturY(delta, 1);
         maxDeplacement = 500; 
         
 		
