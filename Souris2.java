@@ -13,7 +13,7 @@ public class Souris2 extends Ennemi {
 	}
 
 	public void init() throws SlickException {
-		animations = super.prepareAnimation("characters.png");
+		animations = super.prepareAnimation("BODY_skeleton.png");
 		super.calcHitBox(x, y);
 	}
 

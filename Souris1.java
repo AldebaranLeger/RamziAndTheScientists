@@ -21,7 +21,7 @@ public class Souris1 extends Ennemi{
 	public void init() throws SlickException
 	{
 		moving = true;
-		animations = super.prepareAnimation("characters.png");
+		animations = super.prepareAnimation("BODY_skeleton.png");
 	}
 	
 	public void update(int delta) throws SlickException
