@@ -94,15 +94,15 @@ public class Ramzi{
 		System.out.println("Attaque 1 :\nPoint X : " + mX + "\nPoint Y : " + mY);
 	}
 	
-	public void attack2(int mX, int mY)
+	public void attackADistance(int mX, int mY)
 	{
-		System.out.println("Attaque 2 :\nPoint X : " + mX + "\nPoint Y : " + mY);
+		Projectile projectile;
+		projectile = new Projectile((int)this.x, (int)this.y, mX, mY);
 	}
 	
 	public void parle()
 	{
 		pnj.setParle();
-		System.out.println(Math.cos(5.5));
 	}
 	
 	public boolean isCollision(float x, float y) {

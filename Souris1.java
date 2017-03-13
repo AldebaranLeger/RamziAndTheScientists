@@ -16,6 +16,7 @@ public class Souris1 extends Ennemi{
 	public Souris1(TiledMap m, float x, float y)
 	{
 		super(m, x, y);
+		super.var = 1; 
 	}
 	
 	public void init() throws SlickException
@@ -26,7 +27,6 @@ public class Souris1 extends Ennemi{
 	
 	public void update(int delta) throws SlickException
 	{
-		
 		float futurX =  getFuturX(delta, 1);
         float futurY =  getFuturY(delta, 1);
         maxDeplacement = 500; 
@@ -46,5 +46,6 @@ public class Souris1 extends Ennemi{
 				maxDeplacement = (int) (Math.random()*(500-100)+100);
 			}
 		}
+		
 	}
 }

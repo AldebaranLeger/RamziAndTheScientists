@@ -68,7 +68,7 @@ public class Controle implements KeyListener, MouseListener{
 				this.ramzi.attack1(mX, mY);
 		    break;
 			case 1:
-				this.ramzi.attack2(mX, mY);
+				this.ramzi.attackADistance(mX, mY);
 		    break;
 		}
 	}

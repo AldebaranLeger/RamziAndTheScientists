@@ -3,10 +3,10 @@ import org.newdawn.slick.Graphics;
 
 
 public class Camera {
-	private SourisEnnemie souris;
+	private Ramzi souris;
 	private float xCamera, yCamera;
 	
-	public Camera(SourisEnnemie souris) {
+	public Camera(Ramzi souris) {
 		this.souris = souris;
 		this.xCamera = souris.getX();
 		this.yCamera = souris.getY();
