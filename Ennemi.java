@@ -134,7 +134,7 @@ public abstract class Ennemi {
 
 	}
 
-	public void suivrePlayer(Ramzi player, double vitesse) {		
+	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {		
 		float gX, gY;
 
 		if (player.getX() > this.x)
@@ -162,9 +162,34 @@ public abstract class Ennemi {
 		float diffX = player.getX() - x;
 		float diffY = player.getY() - y;
 		float angle = (float) Math.atan2(diffY, diffX);
+	  	if(collision){
+	  		if(isCollision(this.x,this.y-1)){
+				x += Math.cos(angle) * vitesse;
+	  			y+=1;
+	  			System.out.println("1");
+	  		}
+	  		if(isCollision(this.x,this.y+1)){
+				x += Math.cos(angle) * vitesse;
+	  			y-=1;
+	  			System.out.println("2");
+	  		}
+	  		if(isCollision(this.x+1,this.y)){
+	  			x-=1;
+				y += Math.sin(angle) * vitesse;
+				System.out.println("3");
+	  		}
+	  		if(isCollision(this.x-1,this.y)){
+	  			x+=1;
+				y += Math.sin(angle) * vitesse;
+				System.out.println("4");
+	  		}
+	  		
 
-		x += Math.cos(angle) * vitesse;
-		y += Math.sin(angle) * vitesse;
+	  	} else {
+	 
+			x += Math.cos(angle) * vitesse;
+			y += Math.sin(angle) * vitesse;
+		}
 	}
 
 	public float getX() {
