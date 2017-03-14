@@ -1,7 +1,12 @@
-import org.newdawn.slick.Color;
+import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.gui.AbstractComponent;
+import org.newdawn.slick.gui.ComponentListener;
+import org.newdawn.slick.gui.MouseOverArea;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
 
 public class Hud {
 	// position de la barre
@@ -13,25 +18,29 @@ public class Hud {
 	private Image playerlifehalf;
 	private Image playerlifeempty;
 	private Image playeritems;
+	private StateBasedGame sbg;
 		
 	public Hud(){
-		
+
 	}
 
-	  public void init() throws SlickException {
-	    this.playerlifefull = new Image("ressources/hud/ui_heart_full.png");
-	    this.playerlifehalf = new Image("ressources/hud/ui_heart_half.png");
-	    this.playerlifeempty = new Image("ressources/hud/ui_heart_empty.png");
-	    this.playeritems = new Image("ressources/hud/ui_items.png");
+	  public void init(GameContainer gc) throws SlickException {
+		    /*this.playerlifefull = new Image("ressources/hud/ui_heart_full.png");
+		    this.playerlifehalf = new Image("ressources/hud/ui_heart_half.png");
+		    this.playerlifeempty = new Image("ressources/hud/ui_heart_empty.png");
+		    this.playeritems = new Image("ressources/hud/ui_items.png");*/
 	  } 
 	  
 	  public void render(Graphics g) {
+		  //annule la caméra car hud fixe
 		  g.resetTransform();		 
-		  g.drawImage(this.playerlifefull, P_BAR_X, P_BAR_Y);
+		  /*g.drawImage(this.playerlifefull, P_BAR_X, P_BAR_Y);
 		  g.drawImage(this.playerlifeempty, P_BAR_X+40, P_BAR_Y);
 		  g.drawImage(this.playerlifeempty, P_BAR_X+80, P_BAR_Y);
-		  g.drawImage(this.playeritems, I_BAR_X, I_BAR_Y);
-		}
+		  g.drawImage(this.playeritems, I_BAR_X, I_BAR_Y);*/
+	  }
+
+
 	  
 	  
 }

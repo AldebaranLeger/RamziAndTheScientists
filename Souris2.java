@@ -10,7 +10,7 @@ public class Souris2 extends Ennemi {
 	public Souris2(TiledMap map, Ramzi p, float x, float y) {
 		super(map, x, y);
 		this.player = p;
-		vitesseDeplacement = 0.1;
+		vitesseDeplacement = 4;
 		super.var = 2;
 	}
 
@@ -42,11 +42,11 @@ public class Souris2 extends Ennemi {
 		if (moving) {
 
 			if (!super.isCollision(futurX, futurY)) {
-				super.suivrePlayer(player, vitesseDeplacement, delta, false);
+				super.suivrePlayer(player, vitesseDeplacement);
 				// this.x = futurX;
 				// this.y = futurY;
 			} else{
-				super.suivrePlayer(player, vitesseDeplacement, delta, true);
+				super.suivrePlayer(player, 0);
 			}
 		}
 	}
