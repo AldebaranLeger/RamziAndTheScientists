@@ -10,42 +10,54 @@ import org.newdawn.slick.state.StateBasedGame;
 
 public class Menu extends BasicGameState implements ComponentListener {
 	
-	private static final int SPACE = 320;
+	private static final int SPACE = 430;
 	private StateBasedGame sbg;
 	private GameContainer container;
-	private Image background, btnPlay, btnExit;
+	private Image background, btnPlay, btnOptions, btnExit;
 	//bouton Play et Exit
-	private MouseOverArea play, exit;
+	private MouseOverArea play, options, exit;
 	private int id;
 	private WorldMap game;
+	private int newG = 0;
 	
 	public Menu(int id) {
 		this.id = id;
-		this.game = new WorldMap(id+1);
+		game=null;
+		//this.game = new WorldMap(id+1);
 	}
 
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
 		this.sbg = sbg;
 		this.container = gc;
-		background = new Image("ressources/background/menuBack.png");
-		btnPlay = new Image("ressources/boutons/btnPlay.png");
-		btnExit = new Image("ressources/boutons/btnExit.png");
-		play = new MouseOverArea(gc, btnPlay, SPACE, gc.getHeight() - btnPlay.getHeight()*9, this);
-		exit = new MouseOverArea(gc, btnExit, SPACE, gc.getHeight() - btnExit.getHeight() *7, this);
+		background = new Image("ressources/background/Background_menu.png");
+		btnPlay = new Image("ressources/boutons/Bouton_Jouer.png");
+		btnOptions = new Image("ressources/boutons/Bouton_Option.png");
+		btnExit = new Image("ressources/boutons/Bouton_Quitter.png");
+		play = new MouseOverArea(gc, btnPlay, SPACE, gc.getHeight() - btnPlay.getHeight()*3-50, this);
+		options = new MouseOverArea(gc, btnOptions, SPACE +90, gc.getHeight() - btnOptions.getHeight()*2-20, this);
+		exit = new MouseOverArea(gc, btnExit, SPACE+230, gc.getHeight() - btnExit.getHeight()*2-50, this);
 	}
 
 	
 	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
 		background.draw(0, 0, gc.getWidth(), gc.getHeight());
+		btnPlay.setRotation(-40);
+		btnOptions.setRotation(-55);
+		btnExit.setRotation(-60);
 		play.render(gc, g);
+		options.render(gc, g);
 		exit.render(gc, g);
 	}
 
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException {
+		if(newG == 1){
+			newG = 0;
+			sbg.getState(WindowGame.WORLDMAP).init(container, sbg);
+			sbg.enterState(WindowGame.WORLDMAP);
+		}
 	}
 	
-	 
 	 /**
 	   * L'identifiant permet d'identifier les différentes boucles.
 	   * Pour passer de l'une à l'autre.
@@ -57,7 +69,14 @@ public class Menu extends BasicGameState implements ComponentListener {
 	
 	public void componentActivated(AbstractComponent source) {
 		if(source == play) {
-			sbg.enterState(game.getID());
+			game = null;
+			game = new WorldMap(1);
+			try {
+				newG = 1;
+				update(container, sbg, 1);
+			} catch (SlickException e) {
+				e.printStackTrace();
+			}
 			
 		} else if (source == exit) {
 			container.exit();

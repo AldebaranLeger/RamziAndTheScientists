@@ -15,9 +15,11 @@ public class Ramzi{
 	private Animation[] animations = new Animation[8];
 	private TiledMap map;
 	private Pnj pnj;
+	private int hp;
 	
 	public Ramzi(TiledMap map) {
 		this.map = map;
+		this.hp = 6;
 	}
 	
 	public void init() throws SlickException {
@@ -45,8 +47,6 @@ public class Ramzi{
 		g.setColor(new Color(0,0,0, 0.5f));
 		g.fillOval(x - 16, y -8, 32, 16); //création d'une ombre
 		g.drawAnimation(animations[direction + (isMoving() ? 4 : 0)], x-32, y-60);
-		
-	
 	}
 	
 	public void update(int delta) throws SlickException
@@ -154,6 +154,10 @@ public class Ramzi{
 	
 	public void stopMoving(){
 		dx = 0; dy = 0;
+	}
+	
+	public int getHp() {
+		return this.hp;
 	}
 	
 

@@ -31,13 +31,12 @@ public class WindowGame extends StateBasedGame {
 
 	 public static void main(String[] args) throws SlickException {
 		 try {
-			 new AppGameContainer(new WindowGame(), 800, 600, false).start();
+			 new AppGameContainer(new WindowGame(), 877, 600, false).start();
 
 		 }catch (SlickException e){
 			 e.printStackTrace();
 		 }
 	 }
 
-	
 
 }
