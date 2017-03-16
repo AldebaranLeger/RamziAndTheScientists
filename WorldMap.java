@@ -6,12 +6,13 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.gui.AbstractComponent;
+import org.newdawn.slick.gui.ComponentListener;
 import org.newdawn.slick.gui.MouseOverArea;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 
-public class WorldMap extends BasicGameState {
+public class WorldMap extends BasicGameState implements ComponentListener {
 	
 	public WorldMap ()
 	{
@@ -52,6 +53,7 @@ public class WorldMap extends BasicGameState {
 		 * initialise le contenu du jeu, charge les ressources (les graphismes, la musique, etc.)
 		 */	
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
+		this.escapeMenu=false;
 		this.sbg = sbg;
 		this.container = gc;
 
@@ -120,9 +122,9 @@ public class WorldMap extends BasicGameState {
 		btnResume = new Image("ressources/boutons/resume.png");
 		btnExit = new Image("ressources/boutons/btnExit.png");
 		btnMainMenu = new Image ("ressources/boutons/mainmenu.png");
-		resume = new MouseOverArea(gc, btnResume, 300, gc.getHeight() - btnResume.getHeight()*10);
-		mainMenu = new MouseOverArea(gc, btnMainMenu, 300, gc.getHeight() - btnMainMenu.getHeight()*10);
-		exit = new MouseOverArea(gc, btnExit, 320, gc.getHeight() - btnExit.getHeight() *6);
+		resume = new MouseOverArea(gc, btnResume, 300, gc.getHeight() - btnResume.getHeight()*10, this);
+		mainMenu = new MouseOverArea(gc, btnMainMenu, 300, gc.getHeight() - btnMainMenu.getHeight()*10, this);
+		exit = new MouseOverArea(gc, btnExit, 320, gc.getHeight() - btnExit.getHeight() *6, this);
 		
 		//écran game over
 		txtGameOver = new Image("ressources/boutons/gameover.png");
@@ -312,6 +314,7 @@ public class WorldMap extends BasicGameState {
 	public int getNbMorts() {return this.nbMorts;}	
 	
 	public void componentActivated(AbstractComponent source) {
+		System.out.println(source);
 		if(source == resume) {
 			escapeMenu = false;
 		} else if(source == mainMenu) {
