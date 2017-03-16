@@ -1,11 +1,10 @@
-import java.sql.Array;
-
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public abstract class Ennemi {
@@ -18,9 +17,10 @@ public abstract class Ennemi {
 	protected int distanceVue;
 	protected int ptVie;
 	protected int var = 0;
+	protected Graphics g;
 	protected int place;
 	protected boolean living=true;
-	protected Graphics g;
+	protected Rectangle box;
 
 	public Ennemi(TiledMap m, float x, float y) {
 		this.map = m;
@@ -59,7 +59,12 @@ public abstract class Ennemi {
 
 	public void render(Graphics g) throws SlickException
 	{
-		this.g = g;
+		//hitbox
+		//Graphics gr = new Graphics();
+		//gr.setColor(new Color(0, 0, 0, 0.8f));
+		//gr.fillRect(x - 16, y-32, 32, 32); //hitbox
+		this.box = new Rectangle(this.x - 16, this.y - 32, 32, 32);
+		
 		g.setColor(new Color(0, 0, 0, 0.5f));
 		g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
 		g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
@@ -110,19 +115,6 @@ public abstract class Ennemi {
 		return futurY;
 	}
 
-	/*
-	public float[] calcHitBox(float hitX, float hitY) {
-		float[] hitBox = new float[4];
-		int distHitBox;
-
-		hitBox[0] = (this.x - hitX/2);
-		hitBox[1] = (this.x + hitX/2);
-		hitBox[2] = (this.y - hitY/2);
-		hitBox[3] = (this.y + hitY/2);
-
-		return hitBox;
-	}*/
-
 	public float[] getVueEnnemi(int dist) {
 		float[] aireVue = new float[4];
 		this.distanceVue = dist;
@@ -136,7 +128,7 @@ public abstract class Ennemi {
 
 	}
 
-	public void suivrePlayer(Ramzi player, double vitesse) {		
+	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {		
 		float gX, gY;
 
 		if (player.getX() > this.x)
@@ -164,17 +156,30 @@ public abstract class Ennemi {
 		float diffX = player.getX() - x;
 		float diffY = player.getY() - y;
 		float angle = (float) Math.atan2(diffY, diffX);
+	  	if(collision)
+	  	{
+	  		if(isCollision(this.x,this.y-1)){
+				x += Math.cos(angle) * vitesse;
+	  			y+=1;
+	  		}
+	  		if(isCollision(this.x,this.y+1)){
+				x += Math.cos(angle) * vitesse;
+	  			y-=1;
+	  		}
+	  		if(isCollision(this.x+1,this.y)){
+	  			x-=1;
+				y += Math.sin(angle) * vitesse;
+	  		}
+	  		if(isCollision(this.x-1,this.y)){
+	  			x+=1;
+				y += Math.sin(angle) * vitesse;
+	  		}
+	  		moving =false;
 
-		x += Math.cos(angle) * vitesse;
-		y += Math.sin(angle) * vitesse;
-	}
-	
-	public boolean isDead(){
-		if(!living){
-			System.out.println("Souris"+this.place+" est mort.");
-			return true;
-		} else {
-			return false;
+	  	} else {
+	 
+			x += Math.cos(angle) * vitesse;
+			y += Math.sin(angle) * vitesse;
 		}
 	}
 
@@ -212,5 +217,39 @@ public abstract class Ennemi {
 
 	public void setMoving(boolean moving) {
 		this.moving = moving;
+	}
+	
+	public void calcHitBox()
+	{
+		
+		if(this.box!=null)
+		{
+			//System.out.println(this.box.contains(WorldMap.cursorX,WorldMap.cursorY));
+			//System.out.println("Ennemi hitbox : cursor " + WorldMap.cursorX + " & " + WorldMap.cursorY);
+			//System.out.println("Ennemi hitbox : getCenter()" + this.box.getCenterX());
+			if(this.box.contains(WorldMap.cursorX,WorldMap.cursorY))
+			{
+				System.out.println("PANAPANAAPANANANA");
+				this.takeDamage(2);
+			}
+		}
+	}
+	
+	public void takeDamage(int dmg){
+		this.ptVie-=dmg;
+		if(this.ptVie<=0)this.death();
+	}
+	
+	private void death(){
+		living=false;
+	}
+	
+	public boolean isDead(){
+		if(!living){
+			System.out.println("Souris"+this.place+" est mort.");
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

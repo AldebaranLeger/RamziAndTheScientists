@@ -14,11 +14,13 @@ public class Ramzi{
 	private int direction;
 	private Animation[] animations = new Animation[8];
 	private TiledMap map;
-	private Pnj pnj;
+	public static WorldMap wp;
 	private int hp;
+	private boolean alive = true;
 	
-	public Ramzi(TiledMap map) {
+	public Ramzi(TiledMap map, WorldMap wp) {
 		this.map = map;
+		this.wp = wp;
 		this.hp = 6;
 	}
 	
@@ -47,6 +49,8 @@ public class Ramzi{
 		g.setColor(new Color(0,0,0, 0.5f));
 		g.fillOval(x - 16, y -8, 32, 16); //création d'une ombre
 		g.drawAnimation(animations[direction + (isMoving() ? 4 : 0)], x-32, y-60);
+		
+	
 	}
 	
 	public void update(int delta) throws SlickException
@@ -91,18 +95,14 @@ public class Ramzi{
 
 	public void attack1(int mX, int mY)
 	{
-		System.out.println("Attaque 1 :\nPoint X : " + mX + "\nPoint Y : " + mY);
+	//	System.out.println("Attaque 1 :\nPoint X : " + mX + "\nPoint Y : " + mY);
 	}
 	
 	public void attackADistance(int mX, int mY)
 	{
-		Projectile projectile;
-		projectile = new Projectile((int)this.x, (int)this.y, mX, mY);
-	}
-	
-	public void parle()
-	{
-		pnj.setParle();
+//		System.out.println("Ramzi X :"+this.x+" Ramzi Y : "+this.y);
+//		System.out.println("Ramzi X int :"+(int)this.x+" Ramzi Y int : "+(int)this.y);
+		wp.createProjectile(mX, mY);
 	}
 	
 	public boolean isCollision(float x, float y) {
@@ -132,7 +132,6 @@ public class Ramzi{
 	public void setY(float y) { this.y = y; }
 	public void setDx(float dx){ this.dx = dx; }
 	public void setDy(float dy){ this.dy = dy; }
-	public void setPnj(Pnj p){pnj = p;}
 	//public Point getCursor() {return cursor;}
 	public int getDirection() { return direction;}
 	public void setDirection(int direction) { 
@@ -155,7 +154,23 @@ public class Ramzi{
 	public void stopMoving(){
 		dx = 0; dy = 0;
 	}
+
+	public void takeDamage(int dmg) 
+	{
+		this.hp -= dmg;
+		System.out.println("Ramzi : HP - " + this.hp);
+		if(this.hp<=0){
+			this.dead();
+		}
+	}
 	
+	public void dead(){
+		this.alive = false;
+	}
+	
+	public boolean isAlive(){
+		return alive;
+	}
 	public int getHp() {
 		return this.hp;
 	}

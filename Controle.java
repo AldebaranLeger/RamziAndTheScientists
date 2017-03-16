@@ -39,9 +39,6 @@ public class Controle implements KeyListener, MouseListener{
 		  case Input.KEY_RIGHT:
 		    this.ramzi.setDx(1);
 		    break;
-		  case Input.KEY_A:
-			 this.ramzi.parle();
-			 break;
 		  }
 	  }
 	  public void keyReleased(int key, char c) {

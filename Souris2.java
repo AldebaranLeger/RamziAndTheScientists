@@ -10,7 +10,7 @@ public class Souris2 extends Ennemi {
 	public Souris2(TiledMap map, Ramzi p, float x, float y) {
 		super(map, x, y);
 		this.player = p;
-		vitesseDeplacement = 4;
+		vitesseDeplacement = 2;
 		super.var = 2;
 	}
 
@@ -21,8 +21,8 @@ public class Souris2 extends Ennemi {
 	public void update(int delta) throws SlickException
 	{
 		
-		float futurX = getFuturX(delta, 1.5);
-		float futurY = getFuturY(delta, 1.5);
+		float futurX = getFuturX(delta, 0.5);
+		float futurY = getFuturY(delta, 0.5);
 		float[] vueSouris = super.getVueEnnemi(distanceVue);
 		if (!moving)
 			distanceVue = 100; // La souris va voir le joueur à 100 (px?) ...
@@ -42,12 +42,14 @@ public class Souris2 extends Ennemi {
 		if (moving) {
 
 			if (!super.isCollision(futurX, futurY)) {
-				super.suivrePlayer(player, vitesseDeplacement);
+				super.suivrePlayer(player, vitesseDeplacement, delta, false);
 				// this.x = futurX;
 				// this.y = futurY;
 			} else{
-				super.suivrePlayer(player, 0);
+				super.suivrePlayer(player, vitesseDeplacement, delta, true);
 			}
 		}
+		
+		super.calcHitBox();
 	}
 }

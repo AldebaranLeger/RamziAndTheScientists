@@ -46,6 +46,7 @@ public class Souris1 extends Ennemi{
 				maxDeplacement = (int) (Math.random()*(500-100)+100);
 			}
 		}
+		super.calcHitBox();
 		
 	}
 }

@@ -6,7 +6,8 @@ import org.newdawn.slick.state.StateBasedGame;
 
 //implémente la boucle infinie
 public class WindowGame extends StateBasedGame {
-		
+	
+	
 	//chaque state doit avoir un id
 	public static final int STARTMENU = 0;
 	public static final int WORLDMAP = 1; 
@@ -15,7 +16,8 @@ public class WindowGame extends StateBasedGame {
 	{
 		super("Ramzi & The Scientists");
 		this.addState(new Menu(STARTMENU));
-		this.addState(new WorldMap(WORLDMAP));		
+		this.addState(new WorldMap(WORLDMAP));	
+		
 	}
 	
 	/**
@@ -38,5 +40,6 @@ public class WindowGame extends StateBasedGame {
 		 }
 	 }
 
+	
 
 }
