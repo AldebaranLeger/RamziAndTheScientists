@@ -27,7 +27,6 @@ public abstract class Ennemi {
 	private boolean littleMouseRunning = false;
 	private float litX, litY; 
 
-
 	public Ennemi(TiledMap m, float x, float y) {
 		this.map = m;
 		this.x = x;
@@ -76,7 +75,7 @@ public abstract class Ennemi {
 		
 		return animation;
 	}
-	
+
 	public void render(Graphics g) throws SlickException
 	{
 		//hitbox
@@ -110,8 +109,8 @@ public abstract class Ennemi {
 			g.drawAnimation(dyingSmoke[0], x-32, y-90);
 			moving=false;
 		}
-	}
-	
+
+	}	
 	public boolean agony(){
 		if(smokeToken>=65){
 			return true;
@@ -125,15 +124,20 @@ public abstract class Ennemi {
 		int tileW = map.getTileWidth();
 		int tileH = map.getTileHeight();
 		int collisionLayer = this.map.getLayerIndex("collision");
-		Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
-		boolean collision = tile != null;
-		if (collision)
-		{
-			Color color = tile.getColor((int) x % tileW, (int) y % tileH);
-			collision = color.getAlpha() > 0;
-		}
-		
-		return collision;
+	//	if(this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer)!=null){
+			Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
+			boolean collision = tile != null;
+			if (collision)
+			{
+				Color color = tile.getColor((int) x % tileW, (int) y % tileH);
+				collision = color.getAlpha() > 0;
+			}
+			
+			return collision;
+//		} else {
+//			this.death();
+//			return true;
+//		}
 	}
 
 	protected float getFuturX(int delta, double vitesse)
@@ -207,23 +211,18 @@ public abstract class Ennemi {
 		float angle = (float) Math.atan2(diffY, diffX);
 	  	if(collision)
 	  	{
-	  		if(isCollision(this.x,this.y-1)){
-				x += Math.cos(angle) * vitesse;
-	  			y+=1;
+	  		if(isCollision(this.x,this.y-2)){
+	  			y+=2;
 	  		}
-	  		if(isCollision(this.x,this.y+1)){
-				x += Math.cos(angle) * vitesse;
-	  			y-=1;
+	  		if(isCollision(this.x,this.y+2)){
+	  			y-=2;
 	  		}
-	  		if(isCollision(this.x+1,this.y)){
-	  			x-=1;
-				y += Math.sin(angle) * vitesse;
+	  		if(isCollision(this.x+2,this.y)){
+	  			x-=2;
 	  		}
-	  		if(isCollision(this.x-1,this.y)){
-	  			x+=1;
-				y += Math.sin(angle) * vitesse;
+	  		if(isCollision(this.x-2,this.y)){
+	  			x+=2;
 	  		}
-	  		moving =false;
 
 	  	} else {
 	 
@@ -286,7 +285,8 @@ public abstract class Ennemi {
 	
 	public void takeDamage(int dmg){
 		this.ptVie-=dmg;
-		if(this.ptVie<=0)this.death();
+		if(this.ptVie<=0)
+			this.death();
 	}
 	
 	private void death(){
@@ -295,7 +295,6 @@ public abstract class Ennemi {
 	
 	public boolean isDead(){
 		if(!living){
-			//System.out.println("Souris"+this.place+" est mort.");
 			return true;
 		} else {
 			return false;

@@ -19,11 +19,11 @@ public class ProjCheese
 		yActuel = mm.getY();
 		xArrive = p.getX();
 		yArrive = p.getY();
-		xDiff = xActuel = xArrive;
-		yDiff = yActuel = yArrive;
+		xDiff = xActuel - xArrive;
+		yDiff = yActuel - yArrive;
 		xScale = xDiff / dureeVieCheese;
 		yScale = yDiff / dureeVieCheese;
-		System.out.println(xScale + ", " + yScale);
+		System.out.println(xActuel + ", " + yActuel);
 		
 	}
 	
@@ -37,6 +37,7 @@ public class ProjCheese
 	{
 		//System.out.println("pos.getX() : "+pos.getX() + "pos.getY() : "+pos.getY());
 		g.setColor(new Color(0,0,0, 0.5f));
+		//System.out.println("gc "+ xActuel + ", " + yActuel);
 		g.fillOval(xActuel, yActuel, 20, 20); //création d'une ombre
 		g.setColor(Color.yellow);
 		g.fillOval(xActuel, yActuel, 20, 20);

@@ -1,5 +1,3 @@
-import java.awt.Dialog;
-
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -28,14 +26,16 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private Ramzi player;
 		private Camera camera;
 		public static Ennemi[] tabEnnemi = new Ennemi[100];
-		private int nbEnnemis, nbMorts;
+		private int nbMorts;
+		public static int nbEnnemis;
 		private float x, y;
 		private Bullet bullet;
 		public static float cursorX, cursorY;
 		private Hud hud;
 		private float xMort, yMort;
-		private MadMouse madMouse = null;
+		public static MadMouse madMouse = null;
 		private ProjCheese tabCheese[] = new ProjCheese[10];
+		private boolean madMouseArrives=false;
 		
 		private int totalMorts;
 		private int z = 0;
@@ -46,7 +46,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private MouseOverArea resume, exit, mainMenu;
 		
 		//écran Game Over
-		private boolean gameOver; 
+		private boolean gameOver = false; 
 		
 		
 		public WorldMap (int id) {
@@ -64,7 +64,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 
 						/*  -- Placement des ennemis --  */
 		
-		nbEnnemis = 50;
+		nbEnnemis = 10;
 		this.nbMorts=0;
 
 		this.map = new TiledMap("ressources/map/map1.tmx");
@@ -92,7 +92,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 				Image tileCol = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
 				inMap = tileMap != null;
 				inCollision = tileCol != null;
-				if(inMap || inCollision)
+				if(inMap)
 				{
 					int random = (int)(Math.random() * 2 +1);
 					if(random == 1)
@@ -106,7 +106,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 					outRayonRamzi = true;
 				}
 				
-			}while(!inMap || inCollision || outRayonRamzi);
+			}while(!inMap || outRayonRamzi);
 			
 		}
 
@@ -127,15 +127,13 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		btnResume = new Image("ressources/boutons/resume.png");
 		btnExit = new Image("ressources/boutons/btnExit.png");
 		btnMainMenu = new Image ("ressources/boutons/mainmenu.png");
-		resume = new MouseOverArea(gc, btnResume, 340, gc.getHeight() - btnResume.getHeight()*10, this);
-		mainMenu = new MouseOverArea(gc, btnMainMenu, 320, gc.getHeight() - btnMainMenu.getHeight()*10, this);
-		exit = new MouseOverArea(gc, btnExit, 350, gc.getHeight() - btnExit.getHeight() *6, this);
+		resume = new MouseOverArea(gc, btnResume, 300, gc.getHeight() - btnResume.getHeight()*10, this);
+		mainMenu = new MouseOverArea(gc, btnMainMenu, 300, gc.getHeight() - btnMainMenu.getHeight()*10, this);
+		exit = new MouseOverArea(gc, btnExit, 320, gc.getHeight() - btnExit.getHeight() *6, this);
 		
 		//écran game over
 		txtGameOver = new Image("ressources/boutons/gameover.png");
-		
-		madMouse = new MadMouse(this,map, player, 600, 200);
-		madMouse.init();
+
 	}
 
 	
@@ -143,21 +141,38 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	 * affiche le contenu du jeu
 	 */
 	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
-				
+
+			if(madMouse!=null && !madMouseArrives){
+				madMouseArrives=true;
+				System.out.println("MadMouse apparait.");
+				madMouse.init();
+			}
 		//caméra suiveuse
 				g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());
 				this.map.render(0,0,0);
 				this.map.render(0,0,1);
 				this.player.render(g);
-				this.madMouse.render(gc, sbg, g);
-				for(int i = 0 ; i < nbEnnemis; i ++ )
-				{
-					if(tabEnnemi[i]!=null)
-					tabEnnemi[i].render(g);
+				if(madMouseArrives){
+					if(madMouse!=null){
+						if(!madMouse.isDead()){
+							this.madMouse.render(gc, sbg, g);
+						} else {
+							madMouse = null;
+						}
+					}
+				}
+				if(tabEnnemi!=null){
+					for(int i = 0 ; i < nbEnnemis; i ++ )
+					{
+						if(tabEnnemi[i]!=null)
+						tabEnnemi[i].render(g);
+					}
 				}
 				camera.place(container, g);
 						
+				
 				if (escapeMenu == true) {
+					//fixer le menu en stoppant la caméra
 					//fixer le menu en stoppant la caméra
 					g.resetTransform();
 					g.fillRect(0, 0, gc.getWidth() + 200, gc.getHeight());
@@ -180,7 +195,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 				}else {
 					this.hud.render(g);
 				}
-	
 				
 				if(bullet!=null)
 				{
@@ -210,7 +224,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			this.player.update(delta);
 
 			
-			nbMorts = 0;
+			int nbMorts = 0;
 
 			if((tabEnnemi!=null)){
 				for(int i = 0 ; i < nbEnnemis; i ++ )
@@ -222,6 +236,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 								yMort = tabEnnemi[i].getY();
 								if(tabEnnemi[i].agony()){
 									tabEnnemi[i]=null;
+									this.totalMorts++;
 								}
 							}
 						}
@@ -235,9 +250,14 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 							
 						}
 				}
-				
-			} else {
-				madMouse.update(gc, sbg, delta);
+			} else if(madMouseArrives) {
+				if(madMouse!=null){
+					if(!madMouse.isDead()){
+						madMouse.update(gc, sbg, delta);
+					} else {
+						gameOver = true;
+					}
+				}
 			}
 			
 			
@@ -269,19 +289,11 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			container.exit();
 		}
 		if(Input.KEY_P == key) {
+			//sbg.enterState(2);
 			escapeMenu = true;
 		}
 		if(Input.KEY_E == key)
 			escapeMenu = false;
-		if(Input.KEY_B == key){
-			System.out.println("Z : " + z);
-			System.out.println("NbMort : " + totalMorts );
-			if(tabEnnemi[totalMorts]!=null)
-			tabEnnemi[totalMorts].takeDamage(3);
-
-			if(tabEnnemi[totalMorts]==null)
-				totalMorts ++;
-		}
 	}
 
 	public int getID() {
@@ -337,7 +349,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		if(source == resume) {
 			escapeMenu = false;
 		} else if(source == mainMenu) {
-			sbg.enterState(WindowGame.STARTMENU);
+			sbg.enterState(0);
 		} else {
 			container.exit();
 		}
