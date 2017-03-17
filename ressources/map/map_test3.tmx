@@ -4,7 +4,7 @@
   <image source="tuiles/tilesetformattedupdate1.png" trans="ff00ff" width="112" height="192"/>
  </tileset>
  <tileset firstgid="85" name="collision" tilewidth="16" tileheight="16" tilecount="100">
-  <image source="tuiles/tilesetformattedupdate1.png" trans="ff00ff" width="160" height="160"/>
+  <image source="tuiles/collision.png" trans="ff00ff" width="160" height="160"/>
  </tileset>
  <layer name="collision" width="100" height="100">
   <data encoding="base64" compression="gzip">
