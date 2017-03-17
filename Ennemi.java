@@ -12,7 +12,7 @@ public abstract class Ennemi {
 	protected float x, y;
 	protected int direction = 2;
 	protected boolean moving = false;
-	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleMouse = new Animation[2];
+	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleMouse = new Animation[3];
 	private TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
@@ -23,6 +23,9 @@ public abstract class Ennemi {
 	protected Rectangle box;
 	//timer d'animation effet
 	private int smokeToken = 0;
+	protected int littleMouseDirect;
+	private boolean littleMouseRunning = false;
+	private float litX, litY; 
 
 
 	public Ennemi(TiledMap m, float x, float y) {
@@ -59,9 +62,9 @@ public abstract class Ennemi {
 	}
 	
 	public Animation[] prepareLittleMouseAnimation() throws SlickException {
-		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/Souris_Sauvee.png", 32, 32);
-		this.littleMouse[0] = loadAnimation(spriteLittle, 0, 3, 0);
-		this.littleMouse[1] = loadAnimation(spriteLittle, 1, 3, 1);
+		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/Souris_Sauvee.png", 64, 64);
+		this.littleMouse[1] = loadAnimation(spriteLittle, 0, 3, 0);
+		this.littleMouse[2] = loadAnimation(spriteLittle, 1, 3, 1);
 		return littleMouse;
 	}
 
@@ -88,7 +91,22 @@ public abstract class Ennemi {
 			g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
 		}else {
 			smokeToken++;
-			//g.drawAnimation(littleMouse[(int)(Math.random() * 2 +1)], x -20, y-50);		
+			if(!littleMouseRunning){
+				litX = x - 20;
+				litY = y - 50;
+				g.drawAnimation(littleMouse[littleMouseDirect], litX, litY);		
+				littleMouseRunning = true;
+			} else {
+				switch(littleMouseDirect){
+				case 1 :
+					litX += 5;
+					break;
+				case 2 :
+					litX -= 5;
+					break;
+				}
+				g.drawAnimation(littleMouse[littleMouseDirect], litX, litY);
+			}
 			g.drawAnimation(dyingSmoke[0], x-32, y-90);
 			moving=false;
 		}

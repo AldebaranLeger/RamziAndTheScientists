@@ -12,6 +12,7 @@ public class Souris2 extends Ennemi {
 		this.player = p;
 		vitesseDeplacement = 2;
 		super.var = 2;
+		super.littleMouseDirect = (int) (Math.random()*(3-1)+1);
 	}
 
 	public void init() throws SlickException {

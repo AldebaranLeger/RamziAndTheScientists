@@ -16,7 +16,8 @@ public class Souris1 extends Ennemi{
 	public Souris1(TiledMap m, float x, float y)
 	{
 		super(m, x, y);
-		super.var = 1; 
+		super.var = 1;
+		super.littleMouseDirect = (int) (Math.random()*(3-1)+1);
 	}
 	
 	public void init() throws SlickException
