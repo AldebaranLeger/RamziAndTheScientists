@@ -20,9 +20,9 @@ public class Hud {
 	private static final int BAR_HEIGHT = 16;
 	private Image playerBars, playerItems;
 	private Ramzi player;
-	private int playerHp;
+	private int playerMaxHp;
 	private WorldMap wm;
-	private int maxEnnemis, nbMorts;
+	private int maxEnnemis;
 		
 	public Hud(Ramzi player){
 		this.player = player;
@@ -32,8 +32,7 @@ public class Hud {
 		  this.wm = wm;
 		  //nb ennemi au début du niveau
 		  this.maxEnnemis = wm.getEnnemis();
-		  this.nbMorts = wm.getNbMorts();
-		  this.playerHp = player.getHp();
+		  this.playerMaxHp = player.getHp();
 		  this.playerBars = new Image("ressources/hud/playerBar.png");
 		  this.playerItems = new Image("ressources/hud/hud.png");
 	  } 
@@ -42,13 +41,13 @@ public class Hud {
 		  //annule la caméra car hud fixe
 		  g.resetTransform();
 		  g.drawImage(this.playerBars, P_BAR_X, P_BAR_Y);
-		  g.setColor(LIFE_COLOR);
-		  g.fillRect(BAR_X, LIFE_BAR_Y, ((float)this.playerHp-2)* BAR_WIDTH / (float)this.playerHp, BAR_HEIGHT);
+		  g.setColor(LIFE_COLOR);		  
+		  g.fillRect(BAR_X, LIFE_BAR_Y, ((float)this.playerMaxHp - ((float)this.playerMaxHp - (float)this.player.getCurrentHp()))* BAR_WIDTH / (float)this.playerMaxHp, BAR_HEIGHT);
 		  g.setColor(ATQ_COLOR);
 		  g.fillRect(BAR_X, ATQ_BAR_Y, .8f * BAR_WIDTH, BAR_HEIGHT);
 		  g.setColor(CPT_ENNEMI_COLOR);
 		  //jauge qui diminue à chaque ennemi tué
-		  g.fillRect(BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.nbMorts))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
+		  g.fillRect(BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.wm.getNbMorts()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
 		  g.drawImage(this.playerBars, P_BAR_X, P_BAR_Y);
 		  g.drawImage(this.playerItems, I_BAR_X, I_BAR_Y);
 		  g.setColor(Color.white);

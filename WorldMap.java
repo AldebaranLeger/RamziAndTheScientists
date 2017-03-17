@@ -1,3 +1,5 @@
+import java.awt.Dialog;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -35,6 +37,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private MadMouse madMouse = null;
 		private ProjCheese tabCheese[] = new ProjCheese[10];
 		
+		private int totalMorts;
+		private int z = 0;
 		
 		//menu pause
 		private boolean escapeMenu;
@@ -42,7 +46,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private MouseOverArea resume, exit, mainMenu;
 		
 		//écran Game Over
-		private boolean gameOver = false; 
+		private boolean gameOver; 
 		
 		
 		public WorldMap (int id) {
@@ -54,6 +58,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		 */	
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
 		this.escapeMenu=false;
+		this.gameOver = false;
 		this.sbg = sbg;
 		this.container = gc;
 
@@ -122,13 +127,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		btnResume = new Image("ressources/boutons/resume.png");
 		btnExit = new Image("ressources/boutons/btnExit.png");
 		btnMainMenu = new Image ("ressources/boutons/mainmenu.png");
-		resume = new MouseOverArea(gc, btnResume, 300, gc.getHeight() - btnResume.getHeight()*10, this);
-		mainMenu = new MouseOverArea(gc, btnMainMenu, 300, gc.getHeight() - btnMainMenu.getHeight()*10, this);
-		exit = new MouseOverArea(gc, btnExit, 320, gc.getHeight() - btnExit.getHeight() *6, this);
+		resume = new MouseOverArea(gc, btnResume, 340, gc.getHeight() - btnResume.getHeight()*10, this);
+		mainMenu = new MouseOverArea(gc, btnMainMenu, 320, gc.getHeight() - btnMainMenu.getHeight()*10, this);
+		exit = new MouseOverArea(gc, btnExit, 350, gc.getHeight() - btnExit.getHeight() *6, this);
 		
 		//écran game over
 		txtGameOver = new Image("ressources/boutons/gameover.png");
-
 		
 		madMouse = new MadMouse(this,map, player, 600, 200);
 		madMouse.init();
@@ -148,31 +152,35 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 				this.madMouse.render(gc, sbg, g);
 				for(int i = 0 ; i < nbEnnemis; i ++ )
 				{
+					if(tabEnnemi[i]!=null)
 					tabEnnemi[i].render(g);
 				}
 				camera.place(container, g);
 						
-				
 				if (escapeMenu == true) {
 					//fixer le menu en stoppant la caméra
 					g.resetTransform();
 					g.fillRect(0, 0, gc.getWidth() + 200, gc.getHeight());
 					g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
 					resume.render(gc, g);
+					resume.setMouseOverColor(Color.orange);
 					mainMenu.render(gc, g);
+					mainMenu.setMouseOverColor(Color.orange);
 					exit.render(gc, g);
-				} else {
-					this.hud.render(g);
-				}
-				
-				if(gameOver == true) {
+					exit.setMouseOverColor(Color.orange);
+				}else if(gameOver == true){
 					g.resetTransform();
 					g.fillRect(0, 0, gc.getWidth() + 200, gc.getHeight());
 					g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
-					txtGameOver.draw(300, 300);
+					txtGameOver.draw(340, gc.getHeight() - txtGameOver.getHeight()*10+20);
 					mainMenu.render(gc, g);
+					mainMenu.setMouseOverColor(Color.orange);
 					exit.render(gc, g);
+					exit.setMouseOverColor(Color.orange);
+				}else {
+					this.hud.render(g);
 				}
+	
 				
 				if(bullet!=null)
 				{
@@ -194,7 +202,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	 */
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException
 	{
-		if(escapeMenu == true) {
+		if(escapeMenu == true || gameOver== true) {
 			// on met le jeu en pause
 			gc.pause();
 		} else
@@ -202,9 +210,9 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			this.player.update(delta);
 
 			
-			int nbMorts = 0;
+			nbMorts = 0;
 
-			if(tabEnnemi!=null){
+			if((tabEnnemi!=null)){
 				for(int i = 0 ; i < nbEnnemis; i ++ )
 				{
 						if(tabEnnemi[i]!=null){
@@ -212,7 +220,9 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 							if(tabEnnemi[i].isDead()){
 								xMort = tabEnnemi[i].getX();
 								yMort = tabEnnemi[i].getY();
-								tabEnnemi[i]=null;
+								if(tabEnnemi[i].agony()){
+									tabEnnemi[i]=null;
+								}
 							}
 						}
 						else {
@@ -225,6 +235,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 							
 						}
 				}
+				
 			} else {
 				madMouse.update(gc, sbg, delta);
 			}
@@ -247,7 +258,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			gc.resume();
 			
 			if(!this.player.isAlive()){
-				escapeMenu=true;
+				gameOver=true;
 			}
 		}
 	}
@@ -258,11 +269,19 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			container.exit();
 		}
 		if(Input.KEY_P == key) {
-			//sbg.enterState(2);
 			escapeMenu = true;
 		}
 		if(Input.KEY_E == key)
 			escapeMenu = false;
+		if(Input.KEY_B == key){
+			System.out.println("Z : " + z);
+			System.out.println("NbMort : " + totalMorts );
+			if(tabEnnemi[totalMorts]!=null)
+			tabEnnemi[totalMorts].takeDamage(3);
+
+			if(tabEnnemi[totalMorts]==null)
+				totalMorts ++;
+		}
 	}
 
 	public int getID() {
@@ -311,14 +330,14 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 //	}
 	
 	public int getEnnemis() { return this.nbEnnemis;}
-	public int getNbMorts() {return this.nbMorts;}	
+	public int getNbMorts() {return this.totalMorts;}	
 	
 	public void componentActivated(AbstractComponent source) {
 		System.out.println(source);
 		if(source == resume) {
 			escapeMenu = false;
 		} else if(source == mainMenu) {
-			sbg.enterState(0);
+			sbg.enterState(WindowGame.STARTMENU);
 		} else {
 			container.exit();
 		}

@@ -45,7 +45,7 @@ public class MadMouse
 	
 	public void init() throws SlickException
 	{
-		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/boss1.png", 64, 64);
+		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/madMouse.png", 64, 64);
 		this.direction = 2;
 		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);

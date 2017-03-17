@@ -15,17 +15,18 @@ public class Ramzi{
 	private Animation[] animations = new Animation[8];
 	private TiledMap map;
 	public static WorldMap wp;
-	private int hp;
+	private int hp, maxHp;
 	private boolean alive = true;
 	
 	public Ramzi(TiledMap map, WorldMap wp) {
 		this.map = map;
 		this.wp = wp;
-		this.hp = 6;
+		this.maxHp = 12;
+		this.hp= this.maxHp;
 	}
 	
 	public void init() throws SlickException {
-		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/characters.png", 64, 64);
+		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/ramzi.png", 64, 64);
 		this.direction = 2;
 		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);
@@ -37,6 +38,14 @@ public class Ramzi{
 		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
 	}
 	
+	/**
+	 * 
+	 * @param spriteSheet
+	 * @param startX
+	 * @param endX
+	 * @param y : direction (0 à 3)
+	 * @return animation
+	 */
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
 		for (int x = startX ; x < endX ; x++) {
@@ -168,12 +177,9 @@ public class Ramzi{
 		this.alive = false;
 	}
 	
-	public boolean isAlive(){
-		return alive;
-	}
-	public int getHp() {
-		return this.hp;
-	}
+	public boolean isAlive(){return alive;}
+	/**return le max hp de ramzi*/public int getHp() {return this.maxHp;}
+	/**return les hp de ramzi après les dégats*/public int getCurrentHp() {return this.hp;}
 	
 
 }

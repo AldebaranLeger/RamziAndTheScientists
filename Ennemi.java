@@ -12,7 +12,7 @@ public abstract class Ennemi {
 	protected float x, y;
 	protected int direction = 2;
 	protected boolean moving = false;
-	protected Animation[] animations = new Animation[8];
+	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleMouse = new Animation[2];
 	private TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
@@ -21,6 +21,9 @@ public abstract class Ennemi {
 	protected int place;
 	protected boolean living=true;
 	protected Rectangle box;
+	//timer d'animation effet
+	private int smokeToken = 0;
+
 
 	public Ennemi(TiledMap m, float x, float y) {
 		this.map = m;
@@ -48,6 +51,20 @@ public abstract class Ennemi {
 
 		return animations;
 	}
+	
+	public Animation[] prepareSmokeAnimation() throws SlickException {
+		SpriteSheet spriteSmoke = new SpriteSheet("ressources/sprites/Effets/Disparition_Ennemis.png", 98, 128);
+		this.dyingSmoke[0] = loadAnimation(spriteSmoke, 0, 11, 0);
+		return dyingSmoke;
+	}
+	
+	public Animation[] prepareLittleMouseAnimation() throws SlickException {
+		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/Souris_Sauvee.png", 32, 32);
+		this.littleMouse[0] = loadAnimation(spriteLittle, 0, 3, 0);
+		this.littleMouse[1] = loadAnimation(spriteLittle, 1, 3, 1);
+		return littleMouse;
+	}
+
 
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
@@ -56,7 +73,7 @@ public abstract class Ennemi {
 		
 		return animation;
 	}
-
+	
 	public void render(Graphics g) throws SlickException
 	{
 		//hitbox
@@ -64,11 +81,25 @@ public abstract class Ennemi {
 		//gr.setColor(new Color(0, 0, 0, 0.8f));
 		//gr.fillRect(x - 16, y-32, 32, 32); //hitbox
 		this.box = new Rectangle(this.x - 16, this.y - 32, 32, 32);
-		
-		g.setColor(new Color(0, 0, 0, 0.5f));
-		g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
-		g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
 
+		if(!isDead()) {
+			g.setColor(new Color(0, 0, 0, 0.5f));
+			g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
+			g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
+		}else {
+			smokeToken++;
+			//g.drawAnimation(littleMouse[(int)(Math.random() * 2 +1)], x -20, y-50);		
+			g.drawAnimation(dyingSmoke[0], x-32, y-90);
+			moving=false;
+		}
+	}
+	
+	public boolean agony(){
+		if(smokeToken>=65){
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public boolean isCollision(float x, float y) 
@@ -246,7 +277,7 @@ public abstract class Ennemi {
 	
 	public boolean isDead(){
 		if(!living){
-			System.out.println("Souris"+this.place+" est mort.");
+			//System.out.println("Souris"+this.place+" est mort.");
 			return true;
 		} else {
 			return false;

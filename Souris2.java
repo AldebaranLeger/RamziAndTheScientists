@@ -15,7 +15,9 @@ public class Souris2 extends Ennemi {
 	}
 
 	public void init() throws SlickException {
-		animations = super.prepareAnimation("BODY_skeleton.png");
+		animations = super.prepareAnimation("ramzi.png");
+		dyingSmoke = super.prepareSmokeAnimation();
+		littleMouse = super.prepareLittleMouseAnimation();
 	}
 
 	public void update(int delta) throws SlickException
@@ -34,6 +36,7 @@ public class Souris2 extends Ennemi {
 		if ((vueSouris[0] < player.getX() && player.getX() < vueSouris[1])
 				&& (vueSouris[2] < player.getY() && player.getY() < vueSouris[3])) // si player dans le rayon de la souris
 		{
+			if(!super.isDead())
 			moving = true;
 		}
 		else

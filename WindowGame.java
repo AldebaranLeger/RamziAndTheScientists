@@ -11,12 +11,14 @@ public class WindowGame extends StateBasedGame {
 	//chaque state doit avoir un id
 	public static final int STARTMENU = 0;
 	public static final int WORLDMAP = 1; 
+	public static final int OPTIONS = 2;
 	
 	public WindowGame()
 	{
 		super("Ramzi & The Scientists");
 		this.addState(new Menu(STARTMENU));
-		this.addState(new WorldMap(WORLDMAP));	
+		this.addState(new WorldMap(WORLDMAP));
+		this.addState(new Options(OPTIONS));
 		
 	}
 	
