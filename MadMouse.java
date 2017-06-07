@@ -33,6 +33,7 @@ public class MadMouse
 	private float xDiff, yDiff, xScale, yScale;
 	Vector2f pos;
 	Vector2f dir;
+	private int maxPv;
 	private int ptVie;
 	private boolean living = true;
 	
@@ -42,7 +43,12 @@ public class MadMouse
 		this.player = player;
 		this.x = xMadMouseSpawn;
 		this.y = yMadMouseSpawn;
-		this.ptVie = 30;
+		this.ptVie = 25;
+		this.maxPv = 25;
+	}
+	
+	public int getMaxPv(){
+		return this.maxPv;
 	}
 	
 	public Animation[] prepareAnimation() throws SlickException {
@@ -415,6 +421,10 @@ public class MadMouse
 		}
 	}
 	
+	public int getPtVie() {
+		return this.ptVie;
+	}
+	
 	public void setDirection(int direction) {
 		this.direction = direction;
 	}
@@ -429,7 +439,7 @@ public class MadMouse
 		living=false;
 	}
 	
-	public boolean isDead(){
+	public boolean isSaved(){
 		if(!living){
 			System.out.println("MadMouse est mort.");
 			return true;

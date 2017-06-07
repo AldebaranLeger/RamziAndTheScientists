@@ -77,7 +77,7 @@ public abstract class Ennemi {
 	{
 		this.hitbox = new Rectangle(this.x - 16, this.y - 32, 32, 32);
 
-		if(!isDead()) {
+		if(!isSaved()) {
 			createShadow(g);
 		}else {
 			this.escapeLittleMouse(g);
@@ -323,7 +323,7 @@ public abstract class Ennemi {
 		living=false;
 	}
 	
-	public boolean isDead(){
+	public boolean isSaved(){
 		if(!living){
 			return true;
 		} else {

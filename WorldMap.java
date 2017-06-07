@@ -11,42 +11,39 @@ import org.newdawn.slick.gui.MouseOverArea;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
+import levels.*;
 
 public class WorldMap extends BasicGameState implements ComponentListener {
 	
-	public WorldMap ()
-	{
-		
-	}
-	public int id;
-	//GameContainer contient le contexte dans lequel notre jeu sera exécuté
-		private StateBasedGame sbg;
-		private GameContainer container;
+	public WorldMap (){}
+		public int id;
+		private StateBasedGame stateBasedGame; //isolated different stages of the game (menu, ingame, hiscores, etc) into different states so they can be easily managed and maintained.
+		private GameContainer container; //GameContainer contient le contexte dans lequel notre jeu sera exécuté
 		private TiledMap map;
 		private Ramzi player;
 		private Camera camera;
 		public static Ennemi[] tabEnnemi = new Ennemi[100];
-		private int nbMorts;
-		public static int nbEnnemis;
-		private float x, y;
+		private int nbEnnemisSauves;
+		public static int nbEnnemisDebut;
+		private float xEnnemi, yEnnemi; //coordonnées de l'ennemi
 		private Bullet bullet;
 		public static float cursorX, cursorY;
 		private Hud hud;
-		private float xMort, yMort;
+		private float xEnnemiSauve, yEnnemiSauve; //coordonnées de l'ennemi enregistrée lorsque ses points de contamination sont à zéro (ennemi sauvé)
 		public static MadMouse madMouse = null;
 		private ProjCheese tabCheese[] = new ProjCheese[10];
-		private boolean madMouseArrives=false;
-		
-		private int totalMorts;
-		private int z = 0;
-		
+		private boolean madMouseArrives=false;		
+		private int totalEnnemisSauves;
 		//menu pause
 		private boolean escapeMenu;
-		private Image btnResume, btnExit, btnMainMenu, txtGameOver;
-		private MouseOverArea resume, exit, mainMenu;
-		
+		private Image btnResume, btnExit, btnMainMenu, txtGameOver, txtYouWin;
+		private MouseOverArea resume, exit, mainMenu;		
 		//écran Game Over
 		private boolean gameOver = false; 
+		//écran Gagné !
+		private boolean youWin = false;
+		
+		private Level currentLevel; 
 		
 		public WorldMap (int id) {
 			this.id = id;
@@ -55,236 +52,301 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		/**
 		 * initialise le contenu du jeu, charge les ressources (les graphismes, la musique, etc.)
 		 */	
-	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
-		this.escapeMenu=false;
-		this.gameOver = false;
-		this.sbg = sbg;
-		this.container = gc;
-
-						/*  -- Placement des ennemis --  */
-
-		nbEnnemis = 1;
-		this.nbMorts=0;
-
+	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException {
+		this.stateBasedGame = stateBasedGame;
+		this.container = container;
 		this.map = new TiledMap("ressources/map/map1.tmx");
 		player  = new Ramzi(map, this);
 		this.hud = new Hud(player);
-		int tileW = map.getTileWidth();
-		int tileH = map.getTileHeight();
-		int collisionLayer = this.map.getLayerIndex("collision");
-		int mapLayer = this.map.getLayerIndex("sol");
-
-		
-		for(int i = 0 ; i < nbEnnemis; i ++ )
-		{
-			boolean inMap = false;
-			boolean inCollision = false;
-			boolean outRayonRamzi;
-			do
-			{
-				outRayonRamzi  = false;
-				y = (float)(Math.random() * (map.getHeight() * map.getTileHeight() - 0));
-				x = (float)(Math.random() * (map.getWidth() * map.getTileWidth() - 0));
-				
-
-				Image tileMap = this.map.getTileImage((int) x / tileW, (int) y / tileH, mapLayer);
-				Image tileCol = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
-				inMap = tileMap != null;
-				inCollision = tileCol != null;
-				if(inMap)
-				{
-					int random = (int)(Math.random() * 2 +1);
-					if(random == 1)
-						tabEnnemi[i] = new Souris1(map,x,y);
-					else
-						tabEnnemi[i] = new Souris2(map,player,x,y);
-				}
-				if (( x > (player.getX() - 200) && x < (player.getX() + 200))
-						&& ( y > (player.getY() - 200) && ( y < player.getY() + 200))) // si player dans le rayon de la souris
-				{
-					outRayonRamzi = true;
-				}
-				
-			}while(!inMap || outRayonRamzi);
-			
-		}
-
-		
-		this.player.init();	
-		for(int i = 0 ; i < nbEnnemis; i ++ )
+		camera = new Camera(player);
+		addEnnemis();
+		this.player.init();
+		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
 			tabEnnemi[i].init();
 		}	
 		this.hud.init(this);
-
 		Controle control = new Controle(player);
 		this.container.getInput().addKeyListener(control);
 		this.container.getInput().addMouseListener(control);
-		camera = new Camera(player);
-		
-		//menu pause
-		btnResume = new Image("ressources/boutons/resume.png");
-		btnExit = new Image("ressources/boutons/btnExit.png");
-		btnMainMenu = new Image ("ressources/boutons/mainmenu.png");
-		resume = new MouseOverArea(gc, btnResume, 300, gc.getHeight() - btnResume.getHeight()*10, this);
-		mainMenu = new MouseOverArea(gc, btnMainMenu, 300, gc.getHeight() - btnMainMenu.getHeight()*10, this);
-		exit = new MouseOverArea(gc, btnExit, 320, gc.getHeight() - btnExit.getHeight() *6, this);
-		
-		//écran game over
-		txtGameOver = new Image("ressources/boutons/gameover.png");
-
+		createMenu();
 	}
 
 	
 	/**
 	 * affiche le contenu du jeu
 	 */
-	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
-
-			if(madMouse!=null && !madMouseArrives){
-				madMouseArrives=true;
-				System.out.println("MadMouse apparait.");
-				madMouse.init();
-			}
+	public void render(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException 
+	{
 		//caméra suiveuse
-				g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());
-				this.map.render(0,0,0);
-				this.map.render(0,0,1);
-				if(this.player.getImmuniteCooldown() == 0){
-					this.player.render(g);
-				}
-				else{
-					if(this.player.getImmuniteCooldown() %4 == 1){
-						this.player.render(g);
-					}
-				}
-				if(madMouseArrives){
-					if(madMouse!=null){
-						if(!madMouse.isDead()){
-							this.madMouse.render(gc, sbg, g);
-						} else {
-							madMouse = null;
-						}
-					}
-				}
-				if(tabEnnemi!=null){
-					for(int i = 0 ; i < nbEnnemis; i ++ )
-					{
-						if(tabEnnemi[i]!=null)
-						tabEnnemi[i].render(g);
-					}
-				}
-				camera.place(container, g);
-						
-				
-				if (escapeMenu == true) {
-					//fixer le menu en stoppant la caméra
-					//fixer le menu en stoppant la caméra
-					g.resetTransform();
-					g.fillRect(0, 0, gc.getWidth() + 200, gc.getHeight());
-					g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
-					resume.render(gc, g);
-					resume.setMouseOverColor(Color.orange);
-					mainMenu.render(gc, g);
-					mainMenu.setMouseOverColor(Color.orange);
-					exit.render(gc, g);
-					exit.setMouseOverColor(Color.orange);
-				}else if(gameOver == true){
-					g.resetTransform();
-					g.fillRect(0, 0, gc.getWidth() + 200, gc.getHeight());
-					g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
-					txtGameOver.draw(340, gc.getHeight() - txtGameOver.getHeight()*10+20);
-					mainMenu.render(gc, g);
-					mainMenu.setMouseOverColor(Color.orange);
-					exit.render(gc, g);
-					exit.setMouseOverColor(Color.orange);
-				}else {
-					this.hud.render(g);
-				}
-				
-				if(bullet!=null)
-				{
-					bullet.render(gc, g);
-				}
-				for(int i = 0 ; i < 10 ; i ++)
-				{
-					if(tabCheese[i]!=null)
-					{
-						tabCheese[i].render(gc, g);
-					}
-				}
-				
+		g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());
+		this.map.render(0,0,0);
+		this.map.render(0,0,1);
+		this.player.render(g);
+		renderBoss(g);
+		renderEnnemis(g);
+		camera.place(container, g);
+		renderMenu(g);	
+		playerBulletRefresh(g);
+		bossBulletRefresh(g);				
 	}
-
 	
 	/**
 	 * met à jour les éléments de la scène en fonction des entrées utilisateurs ou autre
 	 */
-	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException
+	public void update(GameContainer container, StateBasedGame stateBasedGame, int delta) throws SlickException
 	{
 		if(escapeMenu == true || gameOver== true) {
 			// on met le jeu en pause
-			gc.pause();
+			container.pause();
 		} else
 		{
 			this.player.update(delta);
-
-			
-			int nbMorts = 0;
-
 			if((tabEnnemi!=null)){
-				for(int i = 0 ; i < nbEnnemis; i ++ )
-				{
-						if(tabEnnemi[i]!=null){
-							tabEnnemi[i].update(delta);
-							if(tabEnnemi[i].isDead()){
-								xMort = tabEnnemi[i].getX();
-								yMort = tabEnnemi[i].getY();
-								if(tabEnnemi[i].estAMetamorphoser()){
-									tabEnnemi[i]=null;
-									this.totalMorts++;
-								}
-							}
-						}
-						else {
-							nbMorts++;
-						}
-						if(nbMorts==nbEnnemis){
-							tabEnnemi=null;
-							
-							madMouse = new MadMouse(map, player, xMort, yMort);
-							
-						}
-				}
+				updatesEnnemis(delta);
 			} else if(madMouseArrives) {
-				if(madMouse!=null){
-					if(!madMouse.isDead()){
-						madMouse.update(gc, sbg, delta);
-					} else {
-						gameOver = true;
-					}
+				if(madMouse!=null) {
+					this.hud.setBossMaxHp(madMouse.getMaxPv());
+					this.hud.updateBossHp(madMouse.getPtVie());
 				}
+				gameState(delta);
 			}
-			
-			
 			camera.update(container);
-			
-			if(bullet!=null){
-				bullet.update(delta);
-			}
-			
-			for(int i = 0 ; i < 10 ; i ++)
-			{
-				if(tabCheese[i]!=null)
-				{
-					tabCheese[i].update(delta, i);
-				}
-			}
-			
-			gc.resume();
+			playerBulletUpdate(delta);
+			bossBulletUpdate(delta);			
+			container.resume(); //continue les updates dans le GameContainer
 			
 			if(!this.player.isAlive()){
 				gameOver=true;
+			}
+		}
+	}
+	
+	/**
+	 * Placement des ennemis de manière aléatoire sur la carte
+	 */
+	public void addEnnemis() {
+		int tileW = map.getTileWidth();
+		int tileH = map.getTileHeight();
+		int collisionLayer = this.map.getLayerIndex("collision");
+		int mapLayer = this.map.getLayerIndex("sol");
+		nbEnnemisDebut = 1;
+		this.nbEnnemisSauves=0;
+		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
+		{
+			boolean inMap = false;
+			boolean inCollision = false;
+			boolean inRamziRayon;
+			do
+			{
+				inRamziRayon  = false;
+				//coordonnées de l'ennemi calculé aléatoirement
+				yEnnemi = (float)(Math.random() * (map.getHeight() * map.getTileHeight() - 0)); 
+				xEnnemi = (float)(Math.random() * (map.getWidth() * map.getTileWidth() - 0));
+				
+				Image tileMap = this.map.getTileImage((int) xEnnemi / tileW, (int) yEnnemi / tileH, mapLayer);
+				Image tileCol = this.map.getTileImage((int) xEnnemi / tileW, (int) yEnnemi / tileH, collisionLayer);
+				inMap = tileMap != null;
+				inCollision = tileCol != null;
+				//si les coordonnées de l'ennemi font partie intégrante de la map, alors on le crée.
+				if(inMap)
+				{
+					int random = (int)(Math.random() * 2 +1);
+					if(random == 1)
+						tabEnnemi[i] = new Souris1(map,xEnnemi,yEnnemi);
+					else
+						tabEnnemi[i] = new Souris2(map,player,xEnnemi,yEnnemi);
+				}
+				// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
+				if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
+						&& ( yEnnemi > (player.getY() - 200) && ( yEnnemi < player.getY() + 200))) 
+				{
+					inRamziRayon = true;
+				}
+				
+			}while(!inMap || inRamziRayon);
+			
+		}
+	}
+	
+	/**
+	 * Créer les menus
+	 * @throws SlickException
+	 */
+	public void createMenu() throws SlickException {
+		this.escapeMenu=false;
+		this.gameOver = false;
+		//menu pause
+		btnResume = new Image("ressources/boutons/resume.png");
+		btnExit = new Image("ressources/boutons/btnExit.png");
+		btnMainMenu = new Image ("ressources/boutons/mainmenu.png");
+		resume = new MouseOverArea(container, btnResume, 300, container.getHeight() - btnResume.getHeight()*10, this);
+		mainMenu = new MouseOverArea(container, btnMainMenu, 300, container.getHeight() - btnMainMenu.getHeight()*10, this);
+		exit = new MouseOverArea(container, btnExit, 320, container.getHeight() - btnExit.getHeight() *6, this);
+		//écran game over
+		txtGameOver = new Image("ressources/boutons/gameover.png");
+		//écran Gagné
+		txtYouWin = new Image("ressources/boutons/youWin.png");
+	}
+	
+	/**
+	 * affiche les ennemis sur la carte
+	 * @param g
+	 * @throws SlickException 
+	 */
+	public void renderEnnemis(Graphics g) throws SlickException {
+		if(tabEnnemi!=null){
+			for(int i = 0 ; i < nbEnnemisDebut; i ++ )
+			{
+				if(tabEnnemi[i]!=null)
+				tabEnnemi[i].render(g);
+			}
+		}
+	}
+	
+	/**
+	 * affiche le boss du niveau quand le dernier ennemi est sauvé.
+	 * @throws SlickException 
+	 */
+	public void renderBoss(Graphics g) throws SlickException {
+		if(madMouse!=null && !madMouseArrives){
+			madMouseArrives=true;
+			System.out.println("MadMouse apparait.");
+			madMouse.init();
+		}
+		if(madMouseArrives){
+			if(madMouse!=null){
+				if(!madMouse.isSaved()){
+					this.madMouse.render(container, stateBasedGame, g);
+				} else {
+					madMouse = null;
+				}
+			}
+		}
+		
+	}
+	
+	/**
+	 * Affiche les attaques à distance du joueur (Ramzi)
+	 * @param g
+	 * @throws SlickException 
+	 */
+	public void playerBulletRefresh(Graphics g) throws SlickException {
+		if(bullet!=null)
+		{
+			bullet.render(container, g);
+		}
+	}
+	
+	/**
+	 * Affiche les attaques à distance des boss
+	 * @param g
+	 * @throws SlickException 
+	 */
+	public void bossBulletRefresh(Graphics g) throws SlickException {
+		for(int i = 0 ; i < 10 ; i ++)
+		{
+			if(tabCheese[i]!=null)
+			{
+				tabCheese[i].render(container, g);
+			}
+		}
+	}
+	
+	/**
+	 * affiche le menu en fonction du choix du joueur (touche clavier)
+	 * @param g
+	 */
+	public void renderMenu(Graphics g) {
+		if (escapeMenu == true) {
+			g.resetTransform(); //fixer le menu en stoppant la caméra
+			g.fillRect(0, 0, container.getWidth() + 200, container.getHeight());
+			g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
+			resume.render(container, g);
+			resume.setMouseOverColor(Color.orange);
+			mainMenu.render(container, g);
+			mainMenu.setMouseOverColor(Color.orange);
+			exit.render(container, g);
+			exit.setMouseOverColor(Color.orange);
+		}else if(gameOver == true){
+			g.resetTransform();
+			g.fillRect(0, 0, container.getWidth() + 200, container.getHeight());
+			g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
+			txtGameOver.draw(340, container.getHeight() - txtGameOver.getHeight()*10+20);
+			mainMenu.render(container, g);
+			mainMenu.setMouseOverColor(Color.orange);
+			exit.render(container, g);
+			exit.setMouseOverColor(Color.orange);
+		} else if(youWin == true){
+			g.resetTransform();
+			g.fillRect(0, 0, container.getWidth() + 200, container.getHeight());
+			g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
+			txtYouWin.draw(340, container.getHeight() - txtYouWin.getHeight()*11);
+			mainMenu.render(container, g);
+			mainMenu.setMouseOverColor(Color.orange);
+			exit.render(container, g);
+			exit.setMouseOverColor(Color.orange);			
+		}else {
+			this.hud.render(g);
+		}
+	}
+
+	/**
+	 * Met à jour l'état des ennemis (nombre, apparition du boss) 
+	 * @throws SlickException 
+	 */
+	public void updatesEnnemis(int delta) throws SlickException {
+		int nbEnnemisSauves = 0;
+		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
+		{
+			if(tabEnnemi[i]!=null){
+				tabEnnemi[i].update(delta);
+				if(tabEnnemi[i].isSaved()){
+					xEnnemiSauve = tabEnnemi[i].getX();
+					yEnnemiSauve = tabEnnemi[i].getY();
+					if(tabEnnemi[i].agony()){
+						tabEnnemi[i]=null;
+						this.totalEnnemisSauves++;
+					}
+				}
+			}
+			else {
+				nbEnnemisSauves++;
+			}
+			if(nbEnnemisSauves==nbEnnemisDebut){
+				tabEnnemi=null;
+				madMouse = new MadMouse(this,map, player, xEnnemiSauve, yEnnemiSauve); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
+			}
+		}
+	}
+	
+	/**
+	 * Définit si le joueur a gagné ou non en fonction de l'état du boss
+	 * @param delta
+	 * @throws SlickException 
+	 */
+	public void gameState(int delta) throws SlickException {
+		if(madMouse!=null){
+			if(!madMouse.isSaved()){
+				madMouse.update(container, stateBasedGame, delta);
+			} else {
+				youWin = true;
+			}
+		}
+	}
+	
+	public void playerBulletUpdate(int delta){
+		if(bullet!=null){
+			bullet.update(delta);
+		}
+	}
+	
+	public void bossBulletUpdate(int delta) {
+		for(int i = 0 ; i < 10 ; i ++)
+		{
+			if(tabCheese[i]!=null)
+			{
+				tabCheese[i].update(delta, i);
 			}
 		}
 	}
@@ -295,18 +357,15 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			container.exit();
 		}
 		if(Input.KEY_P == key) {
-			//sbg.enterState(2);
-			escapeMenu = true;
+			escapeMenu = true; //menu pause
 		}
 		if(Input.KEY_E == key)
-			escapeMenu = false;
+			escapeMenu = false; //on reprend la partie
 	}
 
-	public int getID() {
-		return id;
-	}
+	public int getID() { return id;}
 	
-	public void createRamziProjectile(int xClic, int yClic)
+	public void createProjectile(int xClic, int yClic)
 	{
 		int xDirection, yDirection;
 		//this.projectile = new Projectile(this.player, xRamzi, yRamzi, xClic, yClic);
@@ -319,7 +378,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			yDirection = yClic - container.getHeight() / 2;
 		else
 			yDirection = yClic;
-		
+	
 		this.bullet = new Bullet( new Vector2f(container.getWidth() / 2, container.getHeight() / 2) , new Vector2f(xDirection,yDirection) );
 		
 	}
@@ -347,15 +406,15 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 //		bossAtkState = e;
 //	}
 	
-	public int getEnnemis() { return this.nbEnnemis;}
-	public int getNbMorts() {return this.totalMorts;}	
+	public int getEnnemis() { return this.nbEnnemisDebut;}
+	public int getNbEnnemisSauves() {return this.totalEnnemisSauves;}	
 	
 	public void componentActivated(AbstractComponent source) {
 		System.out.println(source);
 		if(source == resume) {
 			escapeMenu = false;
 		} else if(source == mainMenu) {
-			sbg.enterState(0);
+			stateBasedGame.enterState(0);
 		} else {
 			container.exit();
 		}
