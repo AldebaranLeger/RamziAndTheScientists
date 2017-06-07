@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="16" tileheight="16" nextobjectid="1">
+ <tileset firstgid="1" name="tiles" tilewidth="16" tileheight="16" tilecount="961">
+  <image source="tuiles/tilesetentier.png" trans="ff00ff" width="500" height="500"/>
+ </tileset>
+ <tileset firstgid="962" name="collision" tilewidth="16" tileheight="16" tilecount="100">
+  <image source="tuiles/collision.png" width="160" height="160"/>
+ </tileset>
+ <layer name="collision" width="100" height="100">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3cMYrDMBRAQYPvf6lsm71T0mwRMGswsfVkZppf2oUeSAi0LPse67L8rPeeM3m+//d3vfecyd86uqOZ+7gjfbToo0UfLfpo0UeLPlr00aKPFn206KNFHy36aNFHiz5a9NGij5aZ+zhrXv099+f/z6u/N/v9+Vn2+uBae31wLX206KNFHy36OM+RPf83zh9a2nZkz/+N84eWto1ap/rYNmqd6mObPlr00aKPFn206KNFHy36aNFHiz5a9NGijxZ9tIx+g4RPo98gAQAAAAAAAAAAAAAAAAAAAAAAAAAAGO0FmMot9ECcAAA=
+  </data>
+ </layer>
+ <layer name="Calque de Tile 1" width="100" height="100">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAC+3cyU4CQQBF0UJRUBHh/3+WqkQ2DBGI1bzqnJO8LUNfFgwVSvnba93LjLe84Rok+alb173NcKvf5zeS9nh3dV8z3K7okTQ9sqZH1vTImh5Z0yNremRNj6zpkTU9sqZH1vTImh5Z0yNremRNj6zpkbVRe3zWvXdY+7309BqtO93XpX2U8Xps6hYd1s4R7Mvl1+yUZyi+/+9SDW1brvcY7TU7B3pk0SOLHln0yKJHP4+8P23vM6/12NxxO6Odv53C8YzvI5/HTnu0z573nL/dTvD8RvOs71TafepxTo8semTRI4seWfTIokcWPbLokUWPLHpk0SOLHln0yHI8ozX1/1207+v1ONfrjNYtc34KAAAAAAAAAAAAAAAAAAAAAAAAAABIcAAGKxBLQJwAAA==
+  </data>
+ </layer>
+</map>

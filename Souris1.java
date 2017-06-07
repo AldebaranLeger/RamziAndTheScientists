@@ -17,12 +17,17 @@ public class Souris1 extends Ennemi{
 	{
 		super(m, x, y);
 		super.var = 1; 
+		super.ptVie = 2;
+		super.littleMouseDirect = (int) (Math.random()*(3-1)+1);
+		
 	}
 	
 	public void init() throws SlickException
 	{
 		moving = true;
-		animations = super.prepareAnimation("BODY_skeleton.png");
+		animations = super.prepareAnimation("ramzi.png");
+		dyingSmoke = super.prepareSmokeAnimation();
+		littleMouse = super.prepareLittleMouseAnimation();
 	}
 	
 	public void update(int delta) throws SlickException
@@ -33,19 +38,22 @@ public class Souris1 extends Ennemi{
         
 		
 		boolean collision = isCollision(futurX, futurY);
-		if(collision){
-			setRandomDirection();
-		} else {
-			this.x = futurX;
-			this.y = futurY;
-			compteurPas++;
-			if(compteurPas == maxDeplacement)
-			{
+		if(!super.isDead()){
+			if(collision){
 				setRandomDirection();
-				compteurPas = 0;
-				maxDeplacement = (int) (Math.random()*(500-100)+100);
+			} else {
+				this.x = futurX;
+				this.y = futurY;
+				compteurPas++;
+				if(compteurPas == maxDeplacement)
+				{
+					setRandomDirection();
+					compteurPas = 0;
+					maxDeplacement = (int) (Math.random()*(500-100)+100);
+				}
 			}
 		}
+		super.calcHitBox();
 		
 	}
 }

@@ -1,11 +1,10 @@
-import java.sql.Array;
-
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public abstract class Ennemi {
@@ -13,12 +12,20 @@ public abstract class Ennemi {
 	protected float x, y;
 	protected int direction = 2;
 	protected boolean moving = false;
-	protected Animation[] animations = new Animation[8];
+	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleMouse = new Animation[3];
 	private TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
 	protected int var = 0;
 	protected Graphics g;
+	protected int place;
+	protected boolean living=true;
+	protected Rectangle box;
+	//timer d'animation effet
+	private int smokeToken = 0;
+	protected int littleMouseDirect;
+	private boolean littleMouseRunning = false;
+	private float litX, litY; 
 
 	public Ennemi(TiledMap m, float x, float y) {
 		this.map = m;
@@ -46,6 +53,20 @@ public abstract class Ennemi {
 
 		return animations;
 	}
+	
+	public Animation[] prepareSmokeAnimation() throws SlickException {
+		SpriteSheet spriteSmoke = new SpriteSheet("ressources/sprites/Effets/Disparition_Ennemis.png", 98, 128);
+		this.dyingSmoke[0] = loadAnimation(spriteSmoke, 0, 11, 0);
+		return dyingSmoke;
+	}
+	
+	public Animation[] prepareLittleMouseAnimation() throws SlickException {
+		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/Souris_Sauvee.png", 64, 64);
+		this.littleMouse[1] = loadAnimation(spriteLittle, 0, 3, 0);
+		this.littleMouse[2] = loadAnimation(spriteLittle, 1, 3, 1);
+		return littleMouse;
+	}
+
 
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
@@ -57,11 +78,45 @@ public abstract class Ennemi {
 
 	public void render(Graphics g) throws SlickException
 	{
-		this.g = g;
-		g.setColor(new Color(0, 0, 0, 0.5f));
-		g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
-		g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
+		//hitbox
+		//Graphics gr = new Graphics();
+		//gr.setColor(new Color(0, 0, 0, 0.8f));
+		//gr.fillRect(x - 16, y-32, 32, 32); //hitbox
+		this.box = new Rectangle(this.x - 16, this.y - 32, 32, 32);
 
+		if(!isDead()) {
+			g.setColor(new Color(0, 0, 0, 0.5f));
+			g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
+			g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
+		}else {
+			smokeToken++;
+			if(!littleMouseRunning){
+				litX = x - 20;
+				litY = y - 50;
+				g.drawAnimation(littleMouse[littleMouseDirect], litX, litY);		
+				littleMouseRunning = true;
+			} else {
+				switch(littleMouseDirect){
+				case 1 :
+					litX += 5;
+					break;
+				case 2 :
+					litX -= 5;
+					break;
+				}
+				g.drawAnimation(littleMouse[littleMouseDirect], litX, litY);
+			}
+			g.drawAnimation(dyingSmoke[0], x-32, y-90);
+			moving=false;
+		}
+
+	}	
+	public boolean agony(){
+		if(smokeToken>=65){
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public boolean isCollision(float x, float y) 
@@ -69,15 +124,20 @@ public abstract class Ennemi {
 		int tileW = map.getTileWidth();
 		int tileH = map.getTileHeight();
 		int collisionLayer = this.map.getLayerIndex("collision");
-		Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
-		boolean collision = tile != null;
-		if (collision)
-		{
-			Color color = tile.getColor((int) x % tileW, (int) y % tileH);
-			collision = color.getAlpha() > 0;
-		}
-		
-		return collision;
+	//	if(this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer)!=null){
+			Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
+			boolean collision = tile != null;
+			if (collision)
+			{
+				Color color = tile.getColor((int) x % tileW, (int) y % tileH);
+				collision = color.getAlpha() > 0;
+			}
+			
+			return collision;
+//		} else {
+//			this.death();
+//			return true;
+//		}
 	}
 
 	protected float getFuturX(int delta, double vitesse)
@@ -108,19 +168,6 @@ public abstract class Ennemi {
 		return futurY;
 	}
 
-	/*
-	public float[] calcHitBox(float hitX, float hitY) {
-		float[] hitBox = new float[4];
-		int distHitBox;
-
-		hitBox[0] = (this.x - hitX/2);
-		hitBox[1] = (this.x + hitX/2);
-		hitBox[2] = (this.y - hitY/2);
-		hitBox[3] = (this.y + hitY/2);
-
-		return hitBox;
-	}*/
-
 	public float[] getVueEnnemi(int dist) {
 		float[] aireVue = new float[4];
 		this.distanceVue = dist;
@@ -134,7 +181,7 @@ public abstract class Ennemi {
 
 	}
 
-	public void suivrePlayer(Ramzi player, double vitesse) {		
+	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {		
 		float gX, gY;
 
 		if (player.getX() > this.x)
@@ -162,9 +209,26 @@ public abstract class Ennemi {
 		float diffX = player.getX() - x;
 		float diffY = player.getY() - y;
 		float angle = (float) Math.atan2(diffY, diffX);
+	  	if(collision)
+	  	{
+	  		if(isCollision(this.x,this.y-2)){
+	  			y+=2;
+	  		}
+	  		if(isCollision(this.x,this.y+2)){
+	  			y-=2;
+	  		}
+	  		if(isCollision(this.x+2,this.y)){
+	  			x-=2;
+	  		}
+	  		if(isCollision(this.x-2,this.y)){
+	  			x+=2;
+	  		}
 
-		x += Math.cos(angle) * vitesse;
-		y += Math.sin(angle) * vitesse;
+	  	} else {
+	 
+			x += Math.cos(angle) * vitesse;
+			y += Math.sin(angle) * vitesse;
+		}
 	}
 
 	public float getX() {
@@ -201,5 +265,39 @@ public abstract class Ennemi {
 
 	public void setMoving(boolean moving) {
 		this.moving = moving;
+	}
+	
+	public void calcHitBox()
+	{
+		
+		if(this.box!=null)
+		{
+			//System.out.println(this.box.contains(WorldMap.cursorX,WorldMap.cursorY));
+			//System.out.println("Ennemi hitbox : cursor " + WorldMap.cursorX + " & " + WorldMap.cursorY);
+			//System.out.println("Ennemi hitbox : getCenter()" + this.box.getCenterX());
+			if(this.box.contains(WorldMap.cursorX,WorldMap.cursorY))
+			{
+				System.out.println("PANAPANAAPANANANA");
+				this.takeDamage(2);
+			}
+		}
+	}
+	
+	public void takeDamage(int dmg){
+		this.ptVie-=dmg;
+		if(this.ptVie<=0)
+			this.death();
+	}
+	
+	private void death(){
+		living=false;
+	}
+	
+	public boolean isDead(){
+		if(!living){
+			return true;
+		} else {
+			return false;
+		}
 	}
 }
