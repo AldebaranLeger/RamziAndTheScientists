@@ -1,5 +1,5 @@
-import java.awt.geom.AffineTransform;
-
+package game;
+import levels.level1.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -18,14 +18,14 @@ public class Hud {
 	private static final int CPT_ENNEMI_BAR_X = 30 + P_BAR_X;
 	private static final int CPT_ENNEMI_BAR_Y = 60 + P_BAR_Y;
 	private static final int LIFE_BOSS_BAR_X = 200;
-	private static final int LIFE_BOSS_BAR_Y = 460;
+	private static final int LIFE_BOSS_BAR_Y = 500;
 
 	private static final Color LIFE_COLOR = new Color(210, 0, 0);
 	private static final Color ATQ_COLOR = new Color(0, 0, 255);
 	private static final Color CPT_ENNEMI_COLOR = new Color(31, 31, 109);
 	private static final int BAR_WIDTH = 175;
 	private static final int BAR_HEIGHT = 31;
-	private Image playerBars, playerItems, bossBar;
+	private Image playerBars, playerItems;
 	private Ramzi player;
 	private MadMouse boss;
 	private int playerMaxHp, bossMaxHp, currentBossHp;
@@ -49,7 +49,6 @@ public class Hud {
 		renderEnnemiBar(g);
 		if(this.currentBossHp!=0) {
 			renderLifeBossBar(g);
-			g.drawImage(this.bossBar, 180, 340);
 		}
 		renderLifePlayerBar(g);
 		drawHud(g);
@@ -60,12 +59,11 @@ public class Hud {
 		this.playerMaxHp = player.getHp();
 		this.playerBars = new Image("ressources/hud/hud_2.png");
 		this.playerItems = new Image("ressources/hud/hud.png");
-		this.bossBar = new Image("ressources/hud/Lifebar_Boss_V2.png");
 	}
 	
 	private void renderLifeBossBar(Graphics g) {
 		g.setColor(LIFE_COLOR);
-		g.fillRect(LIFE_BOSS_BAR_X, LIFE_BOSS_BAR_Y, ((float)this.bossMaxHp - ((float)this.bossMaxHp - (float)this.currentBossHp))* 510 / (float)this.bossMaxHp, 28);
+		g.fillRect(LIFE_BOSS_BAR_X, LIFE_BOSS_BAR_Y, ((float)this.bossMaxHp - ((float)this.bossMaxHp - (float)this.currentBossHp))* 540 / (float)this.bossMaxHp, 20);
 	}
   
 	private void renderLifePlayerBar(Graphics g) {
