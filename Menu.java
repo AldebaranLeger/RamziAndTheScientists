@@ -12,22 +12,22 @@ import org.newdawn.slick.state.StateBasedGame;
 public class Menu extends BasicGameState implements ComponentListener {
 	
 	private static final int SPACE = 430;
-	private StateBasedGame stateBasedGame;
+	private StateBasedGame sbg;
 	private GameContainer container;
 	private Image background, btnPlay, btnOptions, btnExit;
 	//bouton Play et Exit
 	private MouseOverArea play, options, exit;
 	private int id;
 	private WorldMap game;
-	private int newGame = 0;
+	private int newG = 0;
 	
 	public Menu(int id) {
 		this.id = id;
 		this.game=null;
 	}
 
-	public void init(GameContainer gc, StateBasedGame stateBasedGame) throws SlickException {
-		this.stateBasedGame = stateBasedGame;
+	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
+		this.sbg = sbg;
 		this.container = gc;
 		background = new Image("ressources/background/Background_menu.png");
 		btnPlay = new Image("ressources/boutons/Bouton_Jouer.png");
@@ -39,7 +39,7 @@ public class Menu extends BasicGameState implements ComponentListener {
 	}
 
 	
-	public void render(GameContainer gc, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
+	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
 		background.draw(0, 0, gc.getWidth(), gc.getHeight());
 		btnPlay.setRotation(-35);
 		btnOptions.setRotation(-55);
@@ -51,12 +51,13 @@ public class Menu extends BasicGameState implements ComponentListener {
 		exit.render(gc, g);
 		exit.setMouseOverColor(Color.gray);
 	}
+
 	
-	public void update(GameContainer gc, StateBasedGame stateBasedGame, int delta) throws SlickException {
-		if(newGame == 1){
-			newGame = 0;
-			stateBasedGame.getState(WindowGame.WORLDMAP).init(container, stateBasedGame);
-			stateBasedGame.enterState(WindowGame.WORLDMAP);
+	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException {
+		if(newG == 1){
+			newG = 0;
+			sbg.getState(WindowGame.WORLDMAP).init(container, sbg);
+			sbg.enterState(WindowGame.WORLDMAP);
 		}
 	}
 	
@@ -67,20 +68,21 @@ public class Menu extends BasicGameState implements ComponentListener {
 	public int getID() {
 		return id;
 	}
+
 	
 	public void componentActivated(AbstractComponent source) {
 		if(source == play) {
 			game = null;
 			game = new WorldMap(WindowGame.WORLDMAP);
 			try {
-				newGame = 1;
-				update(container, stateBasedGame, 1);
+				newG = 1;
+				update(container, sbg, 1);
 			} catch (SlickException e) {
 				e.printStackTrace();
 			}
 			
 		}else if(source==options){
-			stateBasedGame.enterState(WindowGame.OPTIONS);
+			sbg.enterState(WindowGame.OPTIONS);
 		}else if (source == exit) {
 			container.exit();
 		}
