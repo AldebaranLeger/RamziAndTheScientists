@@ -48,7 +48,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		//écran Game Over
 		private boolean gameOver = false; 
 		
-		
 		public WorldMap (int id) {
 			this.id = id;
 		}
@@ -63,8 +62,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		this.container = gc;
 
 						/*  -- Placement des ennemis --  */
-		
-		nbEnnemis = 10;
+
+		nbEnnemis = 1;
 		this.nbMorts=0;
 
 		this.map = new TiledMap("ressources/map/map1.tmx");
@@ -151,7 +150,14 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 				g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());
 				this.map.render(0,0,0);
 				this.map.render(0,0,1);
-				this.player.render(g);
+				if(this.player.getImmuniteCooldown() == 0){
+					this.player.render(g);
+				}
+				else{
+					if(this.player.getImmuniteCooldown() %4 == 1){
+						this.player.render(g);
+					}
+				}
 				if(madMouseArrives){
 					if(madMouse!=null){
 						if(!madMouse.isDead()){
@@ -234,7 +240,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 							if(tabEnnemi[i].isDead()){
 								xMort = tabEnnemi[i].getX();
 								yMort = tabEnnemi[i].getY();
-								if(tabEnnemi[i].agony()){
+								if(tabEnnemi[i].estAMetamorphoser()){
 									tabEnnemi[i]=null;
 									this.totalMorts++;
 								}
@@ -246,7 +252,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 						if(nbMorts==nbEnnemis){
 							tabEnnemi=null;
 							
-							madMouse = new MadMouse(this,map, player, xMort, yMort);
+							madMouse = new MadMouse(map, player, xMort, yMort);
 							
 						}
 				}
@@ -300,7 +306,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		return id;
 	}
 	
-	public void createProjectile(int xClic, int yClic)
+	public void createRamziProjectile(int xClic, int yClic)
 	{
 		int xDirection, yDirection;
 		//this.projectile = new Projectile(this.player, xRamzi, yRamzi, xClic, yClic);
