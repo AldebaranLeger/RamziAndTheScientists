@@ -1,3 +1,4 @@
+package game;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -12,46 +13,49 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 import levels.*;
+import levels.level1.*;
 
 public class WorldMap extends BasicGameState implements ComponentListener {
 	
-	public WorldMap (){}
-		public int id;
-		private StateBasedGame stateBasedGame; //isolated different stages of the game (menu, ingame, hiscores, etc) into different states so they can be easily managed and maintained.
-		private GameContainer container; //GameContainer contient le contexte dans lequel notre jeu sera exécuté
-		private TiledMap map;
-		private Ramzi player;
-		private Camera camera;
-		public static Ennemi[] tabEnnemi = new Ennemi[100];
-		private int nbEnnemisSauves;
-		public static int nbEnnemisDebut;
-		private float xEnnemi, yEnnemi; //coordonnées de l'ennemi
-		private Bullet bullet;
-		public static float cursorX, cursorY;
-		private Hud hud;
-		private float xEnnemiSauve, yEnnemiSauve; //coordonnées de l'ennemi enregistrée lorsque ses points de contamination sont à zéro (ennemi sauvé)
-		public static MadMouse madMouse = null;
-		private ProjCheese tabCheese[] = new ProjCheese[10];
-		private boolean madMouseArrives=false;		
-		private int totalEnnemisSauves;
-		//menu pause
-		private boolean escapeMenu;
-		private Image btnResume, btnExit, btnMainMenu, txtGameOver, txtYouWin;
-		private MouseOverArea resume, exit, mainMenu;		
-		//écran Game Over
-		private boolean gameOver = false; 
-		//écran Gagné !
-		private boolean youWin = false;
+	public WorldMap ()
+	{
 		
-		private Level currentLevel; 
-		
-		public WorldMap (int id) {
-			this.id = id;
-		}
-		
-		/**
-		 * initialise le contenu du jeu, charge les ressources (les graphismes, la musique, etc.)
-		 */	
+	}
+	public int id;
+	private StateBasedGame stateBasedGame; //isolated different stages of the game (menu, ingame, hiscores, etc) into different states so they can be easily managed and maintained.
+	private GameContainer container; //GameContainer contient le contexte dans lequel notre jeu sera exécuté
+	private TiledMap map;
+	private Ramzi player;
+	private Camera camera;
+	public static Ennemi[] tabEnnemi = new Ennemi[100];
+	private int nbEnnemisSauves;
+	public static int nbEnnemisDebut;
+	private float xEnnemi, yEnnemi; //coordonnées de l'ennemi
+	private Bullet bullet;
+	public static float cursorX, cursorY;
+	private Hud hud;
+	private float xEnnemiSauve, yEnnemiSauve; //coordonnées de l'ennemi enregistrée lorsque ses points de contamination sont à zéro (ennemi sauvé)
+	public static MadMouse madMouse = null;
+	private ProjCheese tabCheese[] = new ProjCheese[10];
+	private boolean madMouseArrives=false;		
+	private int totalEnnemisSauves;
+	//menu pause
+	private boolean escapeMenu;
+	private Image btnResume, btnExit, btnMainMenu, txtGameOver, txtYouWin;
+	private MouseOverArea resume, exit, mainMenu;		
+	//écran Game Over
+	private boolean gameOver = false; 
+	//écran Gagné !
+	private boolean youWin = false;		
+	private Level currentLevel; 
+	
+	public WorldMap (int id) {
+		this.id = id;
+	}
+	
+	/**
+	 * initialise le contenu du jeu, charge les ressources (les graphismes, la musique, etc.)
+	 */	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException {
 		this.stateBasedGame = stateBasedGame;
 		this.container = container;
@@ -59,6 +63,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		player  = new Ramzi(map, this);
 		this.hud = new Hud(player);
 		camera = new Camera(player);
+		//this.nbEnnemisDebut = currentLevel.getNbEnnemisDebut();
+		//this.tabEnnemi = currentLevel.getTabEnnemi();
 		addEnnemis();
 		this.player.init();
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
@@ -71,7 +77,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		this.container.getInput().addMouseListener(control);
 		createMenu();
 	}
-
 	
 	/**
 	 * affiche le contenu du jeu
@@ -105,10 +110,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			if((tabEnnemi!=null)){
 				updatesEnnemis(delta);
 			} else if(madMouseArrives) {
-				if(madMouse!=null) {
-					this.hud.setBossMaxHp(madMouse.getMaxPv());
-					this.hud.updateBossHp(madMouse.getPtVie());
-				}
 				gameState(delta);
 			}
 			camera.update(container);
@@ -130,7 +131,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		int tileH = map.getTileHeight();
 		int collisionLayer = this.map.getLayerIndex("collision");
 		int mapLayer = this.map.getLayerIndex("sol");
-		nbEnnemisDebut = 1;
+		nbEnnemisDebut = 10;
 		this.nbEnnemisSauves=0;
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
@@ -162,10 +163,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 						&& ( yEnnemi > (player.getY() - 200) && ( yEnnemi < player.getY() + 200))) 
 				{
 					inRamziRayon = true;
-				}
-				
-			}while(!inMap || inRamziRayon);
-			
+				}				
+			}while(!inMap || inRamziRayon);			
 		}
 	}
 	
@@ -285,7 +284,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			mainMenu.render(container, g);
 			mainMenu.setMouseOverColor(Color.orange);
 			exit.render(container, g);
-			exit.setMouseOverColor(Color.orange);			
+			exit.setMouseOverColor(Color.orange);
+			
 		}else {
 			this.hud.render(g);
 		}
@@ -406,7 +406,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 //		bossAtkState = e;
 //	}
 	
-	public int getEnnemis() { return this.nbEnnemisDebut;}
+	public int getEnnemis() { return nbEnnemisDebut;}
 	public int getNbEnnemisSauves() {return this.totalEnnemisSauves;}	
 	
 	public void componentActivated(AbstractComponent source) {
