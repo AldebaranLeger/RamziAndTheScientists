@@ -18,7 +18,8 @@ public class WindowGame extends StateBasedGame {
 		super("Ramzi & The Scientists");
 		this.addState(new Menu(STARTMENU));
 		this.addState(new WorldMap(WORLDMAP));
-		this.addState(new Options(OPTIONS));		
+		this.addState(new Options(OPTIONS));
+		
 	}
 	
 	/**
