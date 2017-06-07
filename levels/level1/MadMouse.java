@@ -1,3 +1,5 @@
+package levels.level1;
+import game.*;
 import java.awt.Rectangle;
 
 import org.newdawn.slick.Animation;
@@ -35,7 +37,6 @@ public class MadMouse
 	Vector2f pos;
 	Vector2f dir;
 	private int atkStt=0;
-	private int maxPv;
 	private int ptVie;
 	private boolean living = true;
 	
@@ -47,11 +48,6 @@ public class MadMouse
 		this.x = xM;
 		this.y = yM;
 		this.ptVie = 25;
-		this.maxPv = 25;
-	}
-	
-	public int getMaxPv(){
-		return this.maxPv;
 	}
 	
 	public void init() throws SlickException
@@ -399,10 +395,6 @@ public class MadMouse
 		} else {
 			return false;
 		}
-	}
-	
-	public int getPtVie() {
-		return this.ptVie;
 	}
 	
 	protected float getFuturX(int delta, double vitesse)
