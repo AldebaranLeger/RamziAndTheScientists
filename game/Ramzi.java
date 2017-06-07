@@ -1,3 +1,4 @@
+package game;
 import java.awt.Rectangle;
 
 import org.newdawn.slick.Animation;
@@ -239,12 +240,10 @@ public class Ramzi{
 					}
 				}
 			} else {
-				try {
-					if(rect.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY()))
-					{
-						WorldMap.madMouse.takeDamage(3);
-					}
-				}catch(Exception e) {}
+				if(rect.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY()))
+				{
+					WorldMap.madMouse.takeDamage(3);
+				}
 			}
 			atkToken=1;
 			break;

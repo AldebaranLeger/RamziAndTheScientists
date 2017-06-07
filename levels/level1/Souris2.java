@@ -1,3 +1,5 @@
+package levels.level1;
+import game.*;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.tiled.TiledMap;
 

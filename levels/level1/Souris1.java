@@ -1,3 +1,5 @@
+package levels.level1;
+import game.*;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
