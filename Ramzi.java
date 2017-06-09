@@ -218,7 +218,7 @@ public class Ramzi{
 		case 0 : 
 			Rectangle damageArea = createDamageArea();
 			
-			canHitEnnemis(damageArea);
+			canHitEnnemis(damageArea, 3);
 			
 			atkToken=1;
 			break;
@@ -235,7 +235,7 @@ public class Ramzi{
 	
 	private Rectangle createDamageArea()
 	{
-		directionAttaque = getDirectionAttaque();
+		directionAttaque = getDirectionAttaque(mouseX, mouseY);
 		Rectangle damageArea = new Rectangle();
 		switch(this.directionAttaque)
 		{
@@ -259,26 +259,30 @@ public class Ramzi{
 		return damageArea;
 	}
 	
-	private void canHitEnnemis(Rectangle damageArea)
+	public void canHitEnnemis(Rectangle damageArea, int damage)
 	{
 		if(WorldMap.tabEnnemi!=null){
-			for(int i = 0; i<WorldMap.nbEnnemis;i++){
+			for(int i = 0; i<WorldMap.nbEnnemisDebut;i++){
 				if(WorldMap.tabEnnemi[i]!=null){
 					if(damageArea.contains(WorldMap.tabEnnemi[i].getX(), WorldMap.tabEnnemi[i].getY()))
 					{
-						WorldMap.tabEnnemi[i].takeDamage(3);
+						WorldMap.tabEnnemi[i].takeDamage(damage);
 					}
 				}
 			}
 		} else {
-			if(damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY()))
+			try
 			{
-				WorldMap.madMouse.takeDamage(3);
+				if(damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY()))
+				{
+					WorldMap.madMouse.takeDamage(damage);
+				}
 			}
+			catch(Exception e){}
 		}
 	}
 	
-	private int getDirectionAttaque()
+	private int getDirectionAttaque(float mouseX, float mouseY)
 	{
 		int directionAttaque = 0;
 		if(polygonTop.contains(mouseX, mouseY))
@@ -297,9 +301,11 @@ public class Ramzi{
 		return directionAttaque;
 	}
 	
-	public void attackADistance(int mX, int mY)
+	public void attackADistance(int mX, int mY) throws SlickException
 	{
-		worldMap.createRamziProjectile(mX, mY);
+		int directionProjectile = getDirectionAttaque(mX, mY);
+		//worldMap.createRamziProjectile(mX, mY);
+		worldMap.createRamziProjectile(directionProjectile);
 	}
 	
 	public boolean isCollision(float x, float y) {
@@ -354,9 +360,13 @@ public class Ramzi{
 
 	public void takeDamage(int dmg) 
 	{
-		this.hp -= dmg;
-		if(this.hp<=0){
-			this.dead();
+		if(this.immuniteCooldown == 0)
+		{
+			this.immuniteCooldown=1;
+			this.hp -= dmg;
+			if(this.hp<=0){
+				this.dead();
+			}
 		}
 	}
 	
@@ -386,35 +396,6 @@ public class Ramzi{
 				this.immuniteCooldown = 0;
 			}
 		}
-	}
-
-	public void takeDamage(int dmg) 
-	{
-		if(this.immuniteCooldown==0){
-			this.immuniteCooldown = 1;
-			this.hp -= dmg;
-			if(this.hp<=0){
-				this.dead();
-			}
-		}
-	}
-	
-	public void dead(){
-		this.alive = false;
-	}
-	
-	public boolean isAlive(){
-		return alive;
-	}
-	/**return le max hp de ramzi*/
-	public int getHp()
-	{
-		return this.maxHp;
-	}
-	/**return les hp de ramzi après les dégats*/
-	public int getCurrentHp()
-	{
-		return this.hp;
 	}
 	
 	public int getImmuniteCooldown()

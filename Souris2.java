@@ -1,4 +1,5 @@
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public class Souris2 extends Ennemi {
@@ -12,7 +13,6 @@ public class Souris2 extends Ennemi {
 		vitesseDeplacement = 2;
 		super.ptVie = 4;
 		super.littleMouseDirection = (int) (Math.random()*(3-1)+1);
-		
 	}
 
 	public void init() throws SlickException {
@@ -35,7 +35,7 @@ public class Souris2 extends Ennemi {
 
 		this.shouldAvoidCollision(delta, futurX, futurY);
 		
-		super.calcHitBox();
+		//super.calcHitBox();
 	}
 	
 	private int getDistanceVue()
@@ -52,7 +52,7 @@ public class Souris2 extends Ennemi {
 		if ((vueSouris[0] < player.getX() && player.getX() < vueSouris[1])
 				&& (vueSouris[2] < player.getY() && player.getY() < vueSouris[3])) // si player dans le rayon de la souris
 		{
-			if(!super.isDead()){
+			if(!super.isSaved()){
 				moving = true;	
 			}
 		}
@@ -73,6 +73,6 @@ public class Souris2 extends Ennemi {
 			}
 		}
 		
-		super.calcHitBox();
+		//super.calcHitBox();
 	}
 }

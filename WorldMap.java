@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -11,7 +15,6 @@ import org.newdawn.slick.gui.MouseOverArea;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
-import levels.*;
 
 public class WorldMap extends BasicGameState implements ComponentListener {
 	
@@ -26,7 +29,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private int nbEnnemisSauves;
 		public static int nbEnnemisDebut;
 		private float xEnnemi, yEnnemi; //coordonnées de l'ennemi
-		private Bullet bullet;
+		private List<Bullet> bullet = new ArrayList<Bullet>();
 		public static float cursorX, cursorY;
 		private Hud hud;
 		private float xEnnemiSauve, yEnnemiSauve; //coordonnées de l'ennemi enregistrée lorsque ses points de contamination sont à zéro (ennemi sauvé)
@@ -42,8 +45,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private boolean gameOver = false; 
 		//écran Gagné !
 		private boolean youWin = false;
-		
-		private Level currentLevel; 
+		// Cooldown de l'attaque à distance
+		private int attaqueDistanceCooldown = -1;
 		
 		public WorldMap (int id) {
 			this.id = id;
@@ -71,7 +74,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		this.container.getInput().addMouseListener(control);
 		createMenu();
 	}
-
 	
 	/**
 	 * affiche le contenu du jeu
@@ -82,13 +84,29 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());
 		this.map.render(0,0,0);
 		this.map.render(0,0,1);
-		this.player.render(g);
+		renderRamzi(g);
 		renderBoss(g);
 		renderEnnemis(g);
-		camera.place(container, g);
-		renderMenu(g);	
+		//camera.place(container, g);
+	//	g.resetTransform();
 		playerBulletRefresh(g);
-		bossBulletRefresh(g);				
+		bossBulletRefresh(g);		
+		renderMenu(g);		
+	}
+	
+	private void renderRamzi(Graphics g) throws SlickException
+	{
+		if(player.getImmuniteCooldown() == 0)
+		{
+			this.player.render(g);
+		}
+		else
+		{
+			if(player.getImmuniteCooldown()%4 == 1)
+			{
+				this.player.render(g);
+			}
+		}
 	}
 	
 	/**
@@ -130,7 +148,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		int tileH = map.getTileHeight();
 		int collisionLayer = this.map.getLayerIndex("collision");
 		int mapLayer = this.map.getLayerIndex("sol");
-		nbEnnemisDebut = 1;
+		nbEnnemisDebut = 5;
 		this.nbEnnemisSauves=0;
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
@@ -232,9 +250,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	 * @throws SlickException 
 	 */
 	public void playerBulletRefresh(Graphics g) throws SlickException {
-		if(bullet!=null)
-		{
-			bullet.render(container, g);
+		if(bullet!=null){
+			for(int i = 0; i< this.bullet.size(); i++){
+				if(this.bullet.get(i)!=null){
+					this.bullet.get(i).render(g);
+				}
+			}
 		}
 	}
 	
@@ -304,7 +325,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 				if(tabEnnemi[i].isSaved()){
 					xEnnemiSauve = tabEnnemi[i].getX();
 					yEnnemiSauve = tabEnnemi[i].getY();
-					if(tabEnnemi[i].agony()){
+					if(tabEnnemi[i].estAMetamorphoser()){
 						tabEnnemi[i]=null;
 						this.totalEnnemisSauves++;
 					}
@@ -315,7 +336,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 			if(nbEnnemisSauves==nbEnnemisDebut){
 				tabEnnemi=null;
-				madMouse = new MadMouse(this,map, player, xEnnemiSauve, yEnnemiSauve); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
+				madMouse = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
 			}
 		}
 	}
@@ -337,7 +358,21 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	
 	public void playerBulletUpdate(int delta){
 		if(bullet!=null){
-			bullet.update(delta);
+			for(int i = 0; i<bullet.size(); i++){
+				if(bullet.get(i)!=null){
+					bullet.get(i).update(delta);
+					if(!bullet.get(i).isAlive()){
+						bullet.remove(i);
+					}
+				}
+			}
+		}
+		if(this.attaqueDistanceCooldown != -1)
+		{
+			this.attaqueDistanceCooldown++;
+			if(this.attaqueDistanceCooldown == 20){
+				this.attaqueDistanceCooldown = -1;
+			}
 		}
 	}
 	
@@ -365,22 +400,33 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 
 	public int getID() { return id;}
 	
-	public void createProjectile(int xClic, int yClic)
+	public void createRamziProjectile(int directionProjectile) throws SlickException
 	{
+		/*
 		int xDirection, yDirection;
 		//this.projectile = new Projectile(this.player, xRamzi, yRamzi, xClic, yClic);
 		
 		if(xClic < container.getWidth() / 2)
-			xDirection = xClic - container.getWidth() / 2;
+			xDirection = (xClic - container.getWidth() /2) *2;
 		else
 			xDirection = xClic;
 		if(yClic < container.getHeight() / 2)
-			yDirection = yClic - container.getHeight() / 2;
+			yDirection = (yClic - container.getHeight() /2 ) *2;
 		else
 			yDirection = yClic;
-	
-		this.bullet = new Bullet( new Vector2f(container.getWidth() / 2, container.getHeight() / 2) , new Vector2f(xDirection,yDirection) );
-		
+		System.out.println(xDirection +" / " + yDirection);
+		this.bullet = new Bullet( 
+				new Vector2f(container.getWidth() / 2, container.getHeight() / 2) , 
+				new Vector2f(xDirection,yDirection)
+				);
+		*/
+		if(this.attaqueDistanceCooldown == -1){
+			if(this.bullet!= null){
+				this.bullet.add(new Bullet(this, map, player,directionProjectile));
+				this.bullet.get(this.bullet.size()-1).init();
+			}
+			this.attaqueDistanceCooldown = 0;
+		}
 	}
 	
 	public void destroyProjectile()
@@ -405,7 +451,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 //	public void bossAtk(int e){
 //		bossAtkState = e;
 //	}
-	
 	public int getEnnemis() { return this.nbEnnemisDebut;}
 	public int getNbEnnemisSauves() {return this.totalEnnemisSauves;}	
 	

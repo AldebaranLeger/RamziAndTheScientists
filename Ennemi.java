@@ -50,7 +50,7 @@ public abstract class Ennemi {
 		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
 
 		return animations;
-	}
+	}	
 	
 	public Animation[] prepareSmokeAnimation() throws SlickException {
 		SpriteSheet spriteSmoke = new SpriteSheet("ressources/sprites/Effets/Disparition_Ennemis.png", 98, 128);
@@ -75,7 +75,9 @@ public abstract class Ennemi {
 
 	public void render(Graphics g) throws SlickException
 	{
-		this.hitbox = new Rectangle(this.x - 16, this.y - 32, 32, 32);
+
+		this.hitbox = new Rectangle(this.x - 16, this.y - 16, 32, 32);
+		
 
 		if(!isSaved()) {
 			createShadow(g);
@@ -299,18 +301,6 @@ public abstract class Ennemi {
 
 	public void setMoving(boolean moving) {
 		this.moving = moving;
-	}
-	
-	public void calcHitBox()
-	{
-		
-		if(this.hitbox!=null)
-		{
-			if(this.hitbox.contains(WorldMap.cursorX,WorldMap.cursorY))
-			{
-				this.takeDamage(2);
-			}
-		}
 	}
 	
 	public void takeDamage(int dmg){

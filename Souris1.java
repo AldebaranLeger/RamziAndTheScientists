@@ -5,6 +5,7 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 
@@ -32,7 +33,7 @@ public class Souris1 extends Ennemi{
 	public void update(int delta) throws SlickException
 	{		
 		this.changerDirection(delta);
-		super.calcHitBox();
+		//super.calcHitBox();
 	}
 	
 	private void changerDirection(int delta)
@@ -41,7 +42,7 @@ public class Souris1 extends Ennemi{
         float futurY =  getFuturY(delta, 1);
         maxDeplacement = 500; 
 		boolean collision = isCollision(futurX, futurY);
-		if(!super.isDead()){
+		if(!super.isSaved()){
 			if(collision){
 				setRandomDirection();
 			} else {

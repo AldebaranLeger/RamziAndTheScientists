@@ -44,7 +44,7 @@ public class Hud {
 	} 
 	  
 	public void render(Graphics g) {
-		//annule la caméra car le hud est fixe
+		//annule le mouvement de caméra car le hud est fixe
 		g.resetTransform();
 		renderEnnemiBar(g);
 		if(this.currentBossHp!=0) {
