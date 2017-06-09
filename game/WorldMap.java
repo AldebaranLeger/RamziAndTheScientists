@@ -1,5 +1,8 @@
 package game;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -26,7 +29,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private Ramzi player;
 		private Camera camera;
 		public static Ennemi[] tabEnnemi;
-		private Bullet bullet;
+		private List<Bullet> bullet = new ArrayList<Bullet>();
 		public static float cursorX, cursorY;
 		public Hud hud;
 		//public static MadMouse madMouse = null;
@@ -39,6 +42,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private boolean gameOver = false; 
 		//écran Gagné !
 		private boolean youWin = false;		
+
+		private int attaqueDistanceCooldown = -1;
 		
 		private Level currentLevel; 
 		
@@ -81,10 +86,9 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	{		
 		g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());//caméra suiveuse
 		this.currentLevel.render(container, stateBasedGame, g); //affiche map, ennemis et boss du niveau courant
-		camera.place(container, g);
-		renderMenu(g);	
 		playerBulletRefresh(g);
-		bossBulletRefresh(g);				
+		bossBulletRefresh(g);	
+		renderMenu(g);				
 	}
 	
 	/**
@@ -138,9 +142,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	 * @throws SlickException 
 	 */
 	public void playerBulletRefresh(Graphics g) throws SlickException {
-		if(bullet!=null)
-		{
-			bullet.render(container, g);
+		if(bullet!=null){
+			for(int i = 0; i< this.bullet.size(); i++){
+				if(this.bullet.get(i)!=null){
+					this.bullet.get(i).render(g);
+				}
+			}
 		}
 	}
 	
@@ -199,7 +206,21 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	
 	public void playerBulletUpdate(int delta){
 		if(bullet!=null){
-			bullet.update(delta);
+			for(int i = 0; i<bullet.size(); i++){
+				if(bullet.get(i)!=null){
+					bullet.get(i).update(delta);
+					if(!bullet.get(i).isAlive()){
+						bullet.remove(i);
+					}
+				}
+			}
+		}
+		if(this.attaqueDistanceCooldown != -1)
+		{
+			this.attaqueDistanceCooldown++;
+			if(this.attaqueDistanceCooldown == 20){
+				this.attaqueDistanceCooldown = -1;
+			}
 		}
 	}
 	
@@ -227,21 +248,16 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 
 	public int getID() { return id;}
 	
-	public void createRamziProjectile(int xClic, int yClic)
+	public void createRamziProjectile(int directionProjectile) throws SlickException
 	{
-		int xDirection, yDirection;
-		//this.projectile = new Projectile(this.player, xRamzi, yRamzi, xClic, yClic);
-		
-		if(xClic < container.getWidth() / 2)
-			xDirection = xClic - container.getWidth() / 2;
-		else
-			xDirection = xClic;
-		if(yClic < container.getHeight() / 2)
-			yDirection = yClic - container.getHeight() / 2;
-		else
-			yDirection = yClic;
-	
-		this.bullet = new Bullet( new Vector2f(container.getWidth() / 2, container.getHeight() / 2) , new Vector2f(xDirection,yDirection) );
+
+		if(this.attaqueDistanceCooldown == -1){
+			if(this.bullet!= null){
+				this.bullet.add(new Bullet(this, map1, player,directionProjectile));
+				this.bullet.get(this.bullet.size()-1).init();
+			}
+			this.attaqueDistanceCooldown = 0;
+		}
 		
 	}
 	

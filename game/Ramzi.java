@@ -235,7 +235,7 @@ public class Ramzi{
 	
 	private Rectangle createDamageArea()
 	{
-		directionAttaque = getDirectionAttaque();
+		directionAttaque = getDirectionAttaque(mouseX, mouseY);
 		Rectangle damageArea = new Rectangle();
 		switch(this.directionAttaque)
 		{
@@ -280,7 +280,7 @@ public class Ramzi{
 		}
 	}
 	
-	private int getDirectionAttaque()
+	private int getDirectionAttaque(float mouseX, float mouseY)
 	{
 		int directionAttaque = 0;
 		if(polygonTop.contains(mouseX, mouseY))
@@ -299,9 +299,11 @@ public class Ramzi{
 		return directionAttaque;
 	}
 	
-	public void attackADistance(int mX, int mY)
+	public void attackADistance(int mX, int mY) throws SlickException
 	{
-		worldMap.createRamziProjectile(mX, mY);
+		int directionProjectile = getDirectionAttaque(mX, mY);
+		//worldMap.createRamziProjectile(mX, mY);
+		worldMap.createRamziProjectile(directionProjectile);
 	}
 	
 	public boolean isCollision(float x, float y) {

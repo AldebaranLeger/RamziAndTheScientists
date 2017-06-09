@@ -2,6 +2,7 @@ package game;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.KeyListener;
 import org.newdawn.slick.MouseListener;
+import org.newdawn.slick.SlickException;
 
 public class Controle implements KeyListener, MouseListener{
 	private Ramzi ramzi;
@@ -66,7 +67,12 @@ public class Controle implements KeyListener, MouseListener{
 				this.ramzi.prepareAttaqueCAC(mX, mY);
 		    break;
 			case 1:
+			try {
 				this.ramzi.attackADistance(mX, mY);
+			} catch (SlickException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		    break;
 		}
 	}
