@@ -7,7 +7,6 @@ public class Souris2 extends Ennemi {
 
 	double vitesseDeplacement;
 	private Ramzi player;
-	private int tailleHitbox;
 	
 	public Souris2(TiledMap map, Ramzi p, float x, float y) {
 		super(map, x, y);
@@ -20,7 +19,7 @@ public class Souris2 extends Ennemi {
 	}
 
 	public void init() throws SlickException {
-		animations = super.prepareAnimation("ramzi.png");
+		animations = super.prepareAnimation("souris_level1.png");
 		dyingSmoke = super.prepareSmokeAnimation();
 		littleMouse = super.prepareLittleMouseAnimation();
 	}

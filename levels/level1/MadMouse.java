@@ -15,7 +15,6 @@ import org.newdawn.slick.tiled.TiledMap;
 
 public class MadMouse
 {
-	private WorldMap wp;
 	private TiledMap map;
 	private Ramzi player;
 	private float x, y;
@@ -23,11 +22,11 @@ public class MadMouse
 	private Animation[] animations = new Animation[8];
 	private Animation[] animationsAttaque = new Animation[4];
 	private int action = 0;
-	private int tim = 0;
-	private int bossTimer = 0;
-	private int atkTimer = 0;
-	private int atkState = 0;
-	private int clrCounter = 0;
+	private int cooldownAttaqueCAC = 0;
+	private int bossTimer = 0; // Timer qui permet de déclencher les différentes attaques
+	private int attaqueCACTimer = 0; // Timer qui permet de déclencher au bout d'un certain temps l'attaque CàC
+	private int attaqueCACState = 0; // Etat de l'attaque au CàC
+	private int ColorState = 0;
 	private Color atkClr;
 	private int atkDistState=0;
 	private int atkDistUpdate=0;
@@ -36,42 +35,58 @@ public class MadMouse
 	private float xDiff, yDiff, xScale, yScale;
 	Vector2f pos;
 	Vector2f dir;
-	private int atkStt=0;
+	private int maxPv;
 	private int ptVie;
 	private boolean living = true;
 	
-	public MadMouse(WorldMap wp, TiledMap map, Ramzi p, float xM, float yM)
+	public MadMouse(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn)
 	{
-		this.wp = wp;
 		this.map = map;
-		this.player = p;
-		this.x = xM;
-		this.y = yM;
-		this.ptVie = 25;
+		this.player = player;
+		this.x = xMadMouseSpawn;
+		this.y = yMadMouseSpawn;
+		this.ptVie = 100;
+		this.maxPv = 100;
+	}
+	
+	public int getMaxPv(){
+		return this.maxPv;
+	}
+	
+	public Animation[] prepareAnimation() throws SlickException {
+
+		SpriteSheet spriteMadMouse = new SpriteSheet("ressources/sprites/madMouse.png", 128, 128);
+		this.animations[0] = loadAnimation(spriteMadMouse, 0, 1, 0);
+		this.animations[1] = loadAnimation(spriteMadMouse, 0, 1, 1);
+		this.animations[2] = loadAnimation(spriteMadMouse, 0, 1, 2);
+		this.animations[3] = loadAnimation(spriteMadMouse, 0, 1, 3);
+		this.animations[4] = loadAnimation(spriteMadMouse, 1, 9, 0);
+		this.animations[5] = loadAnimation(spriteMadMouse, 1, 9, 1);
+		this.animations[6] = loadAnimation(spriteMadMouse, 1, 9, 2);
+		this.animations[7] = loadAnimation(spriteMadMouse, 1, 9, 3);
+
+		return animations;
+	}
+	
+	public Animation[] prepareAnimationAttaque() throws SlickException {
+
+		SpriteSheet spriteMadMouseAttaque = new SpriteSheet("ressources/sprites/attaques/Boss/SpriteAttaqueBoss.png", 200, 500);
+		this.animationsAttaque[0] = loadAttaqueAnimation(spriteMadMouseAttaque, 0, 1, 0);
+		this.animationsAttaque[1] = loadAttaqueAnimation(spriteMadMouseAttaque, 1, 2, 0);
+		this.animationsAttaque[2] = loadAttaqueAnimation(spriteMadMouseAttaque, 2, 3, 0);
+		this.animationsAttaque[3] = loadAttaqueAnimation(spriteMadMouseAttaque, 3, 4, 0);
+
+		return animations;
 	}
 	
 	public void init() throws SlickException
 	{
-		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/madMouse.png", 128, 128);
 		this.direction = 2;
-		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
-		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);
-		this.animations[2] = loadAnimation(spriteSouris, 0, 1, 2);
-		this.animations[3] = loadAnimation(spriteSouris, 0, 1, 3);
-		this.animations[4] = loadAnimation(spriteSouris, 1, 9, 0);
-		this.animations[5] = loadAnimation(spriteSouris, 1, 9, 1);
-		this.animations[6] = loadAnimation(spriteSouris, 1, 9, 2);
-		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
+		prepareAnimation();
+		prepareAnimationAttaque();
 		
-		this.action = 1;
-		
-		SpriteSheet spriteAttaque = new SpriteSheet("ressources/sprites/attaques/Boss/SpriteAttaqueBoss.png", 200, 500);
+		this.action = 1; // Action : suivre le joueur
 
-		this.animationsAttaque[0] = loadAtkAnimation(spriteAttaque, 0, 1, 0);
-		this.animationsAttaque[1] = loadAtkAnimation(spriteAttaque, 1, 2, 0);
-		this.animationsAttaque[2] = loadAtkAnimation(spriteAttaque, 2, 3, 0);
-		this.animationsAttaque[3] = loadAtkAnimation(spriteAttaque, 3, 4, 0);
-		
 	}
 	
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
@@ -82,7 +97,7 @@ public class MadMouse
 		return animation;
 	}
 
-	private Animation loadAtkAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
+	private Animation loadAttaqueAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
 		for (int x = startX ; x < endX ; x++) {
 			animation.addFrame(spriteSheet.getSprite(x, y), 1000);
@@ -92,9 +107,44 @@ public class MadMouse
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException
 	{
+		realiserAction(delta);
+		
+		/*
+		ATTAQUE A DISTANCE
+		
+		switch(atkDistState){
+		case 0 : break;
+		case 1 :
+			//this.throwCheese();
+			System.out.println("MM : " + x + ", " + y);
+	//		wp.createMadMouseCheese(this, delta, 1);
+			atkDistState = 0;			
+			break;
+		}
+		if(atkDistUpdate==1){
+			throwCheese();
+		}
+		
+		*/
+		
+		if(attaqueCACState!=1){
+			if(cooldownAttaqueCAC==0){
+				bossTimer = (int)(Math.random() * (150-50))+50;
+			}
+			cooldownAttaqueCAC ++ ;
+			//System.out.println("cooldownAttaqueCAC : " + cooldownAttaqueCAC);
+			if(cooldownAttaqueCAC>=bossTimer){
+				action=(int)(Math.random() * (4-2))+2;
+				cooldownAttaqueCAC=0;
+			}
+		}
+	}
+	
+	private void realiserAction(int delta)
+	{
 		float futurX = getFuturX(delta, 1.5);
 		float futurY = getFuturY(delta, 1.5);
-
+		
 		switch(action){
 		case 0 : break;
 		case 1 :
@@ -105,53 +155,105 @@ public class MadMouse
 			}
 			break;
 		case 2 : 
-			
-			this.attaquer();
-			action=1;
-			atkState=0;
+			this.prepareAttaqueCAC();
 			break;
-		case 3 : 
-			atkTimer++;
-			clrCounter++;
-			atkState = 1;
-			if(atkTimer>=60)
-			{
-				action=2;
-				atkTimer=0;
-			}
-			break;
-		case 4 :
+		case 3 :
 			atkDistState = 1;
 			System.out.println("Lancer de fromHache");
-			//this.throwTheCheese(delta,1);
-//			System.out.println("MadMouse x = "+x);
-//			wp.createMadMouseCheese(this,delta, 1);
 			action=1;
 			break;
 		}
+	}
+	
+	private void animateAttaqueCACbyTimer(Graphics g)
+	{
 
-		switch(atkDistState){
-		case 0 : break;
+		switch(attaqueCACState){
+		case 0 :
+			break;
 		case 1 :
-			//this.throwCheese();
-			System.out.println("MM : " + x + ", " + y);
-	//		wp.createMadMouseCheese(this, delta, 1);
-			atkDistState = 0;
+			switchColorState(g);
+			switchDirection(g);
 			break;
 		}
-		if(atkDistUpdate==1){
-			throwCheese();
+	}
+	
+	private void switchColorState(Graphics g)
+	{
+		float rotation =0;
+		switch(this.direction)
+		{
+			case 0 : rotation = 90;
+			break;
+			case 1 : rotation = 0;
+			break;
+			case 2 : rotation = 270;
+			break;
+			case 3 : rotation = 180;
+			break;
 		}
-		if(atkState!=1){
-			if(tim==0){
-				bossTimer = (int)(Math.random() * (150-50))+50;
-			}
-			tim ++ ;
-			//System.out.println("tim : " + tim);
-			if(tim>=bossTimer){
-				action=(int)(Math.random() * (5-3))+3;
-				tim=0;
-			}
+		switch(this.ColorState){
+		case 1 :
+			atkClr = new Color(Color.yellow);
+			break;
+		case 20 :
+			atkClr = new Color(Color.orange);
+			break;
+		case 40 :
+			atkClr = new Color(Color.transparent);
+			g.rotate(x, y, rotation);
+			g.drawAnimation(animationsAttaque[0], x-216, y-250);
+			
+			g.resetTransform();
+			attaquerCAC();
+			break;
+		case 45 :
+			g.rotate(x, y, rotation);
+			g.drawAnimation(animationsAttaque[1], x-216, y-250);
+			g.resetTransform();
+			attaquerCAC();
+			break;
+		case 46 :
+			g.rotate(x, y, rotation);
+			g.drawAnimation(animationsAttaque[2], x-216, y-250);
+			g.resetTransform();
+			attaquerCAC();
+			break;
+		case 47 :
+			g.rotate(x, y, rotation);
+			g.drawAnimation(animationsAttaque[3], x-216	, y-250);
+			g.resetTransform();
+			attaquerCAC();
+			break;
+		case 50 :
+			action = 1;
+			attaqueCACTimer=0;
+			attaqueCACState = 0;
+			ColorState=0;
+			break;
+		}
+	}
+	
+	private void switchDirection(Graphics g)
+	{
+		switch(this.direction)
+		{
+		case 0 :
+			g.setColor(atkClr);
+			g.fillRect((int)x - 250 , (int)y-200, 500, 200);
+			break;
+		case 1 :
+			g.setColor(atkClr);
+			g.fillRect((int)x-200, (int)y-250, 200, 500);
+			break;
+		case 2 :
+			g.setColor(atkClr);
+			g.fillRect((int)x -250, (int)y, 500, 200);
+			break;
+		case 3 :
+			g.setColor(atkClr);
+			g.fillRect((int)x, (int)y-250, 200, 500);
+			break;
 		}
 	}
 	
@@ -161,73 +263,7 @@ public class MadMouse
 		g.fillOval(x - 32, y - 16, 64, 32); // création d'une ombre
 		g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
 		
-		switch(atkStt){
-		case 1 :
-			g.drawAnimation(animationsAttaque[0], x-264, y-250);
-			break;
-		case 2 :
-			g.drawAnimation(animationsAttaque[1], x-264, y-250);
-			break;
-		case 3 :
-			g.drawAnimation(animationsAttaque[2], x-264, y-250);
-			break;
-		case 4 :
-			g.drawAnimation(animationsAttaque[3], x-264, y-250);
-			break;
-		}
-		
-		
-		switch(atkState){
-		case 0 :
-			break;
-		case 1 :
-			switch(this.clrCounter){
-			case 1 :
-				atkClr = new Color(Color.yellow);
-				break;
-			case 20 :
-				atkClr = new Color(Color.orange);
-				break;
-			case 40 :
-				atkClr = new Color(Color.transparent);
-				atkStt = 1;
-				break;
-			case 45 :
-				atkStt = 2;
-				break;
-			case 50 :
-				atkStt = 3;
-				break;
-			case 55 :
-				atkStt = 4;
-				break;
-			case 60 :
-				clrCounter=0;
-				atkStt = 0;
-				break;
-			}
-			
-			switch(this.direction)
-			{
-			case 0 :
-				g.setColor(atkClr);
-				g.fillRect((int)x - 250 , (int)y-200, 500, 200);
-				break;
-			case 1 :
-				g.setColor(atkClr);
-				g.fillRect((int)x-200, (int)y-250, 200, 500);
-				break;
-			case 2 :
-				g.setColor(atkClr);
-				g.fillRect((int)x -250, (int)y, 500, 200);
-				break;
-			case 3 :
-				g.setColor(atkClr);
-				g.fillRect((int)x, (int)y-250, 200, 500);
-				break;
-			}
-			break;
-		}
+		animateAttaqueCACbyTimer(g);
 	}
 	
 	public boolean isCollision(float x, float y) 
@@ -245,7 +281,7 @@ public class MadMouse
 		
 		return collision;
 	}
-	
+	/*
 	private void throwCheese(){
 		if(fromage==null){
 			if(player.getX() > x)
@@ -289,51 +325,81 @@ public class MadMouse
 			}
 		}
 	}
+	*/
+	private void prepareAttaqueCAC() {
+		attaqueCACTimer++;
+		ColorState++;
+		attaqueCACState = 1;
+		if(attaqueCACTimer>=50)
+		{
+			attaquerCAC();
+		}
+	}
 	
-	private void attaquer()
+	private void attaquerCAC()
 	{
-		
-		Rectangle rect = new Rectangle();
+		Rectangle damageArea = new Rectangle();
 		switch(this.direction)
 		{
 		case 0 :
-			rect.setSize(500, 200);
-			rect.setLocation((int)x - 250, (int)y - 200);
+			damageArea.setSize(500, 200);
+			damageArea.setLocation((int)x - 250, (int)y - 200);
 			break;
 		case 1 :
-			rect.setSize(200, 500);
-			rect.setLocation((int)x-200, (int)y - 250 );
+			damageArea.setSize(200, 500);
+			damageArea.setLocation((int)x-200, (int)y - 250 );
 			break;
 		case 2 :
-			rect.setSize(500, 200);
-			rect.setLocation((int)x - 250, (int)y);
+			damageArea.setSize(500, 200);
+			damageArea.setLocation((int)x - 250, (int)y);
 			break;
 		case 3 :
-			rect.setSize(200, 500);
-			rect.setLocation((int)x, (int)y-250);
+			damageArea.setSize(200, 500);
+			damageArea.setLocation((int)x, (int)y-250);
 			break;
 		}
-		if(rect.contains(this.player.getX(), this.player.getY()))
+		if(damageArea.contains(this.player.getX(), this.player.getY()))
 		{
 			this.player.takeDamage(3);
 		}
-			
+
+	}
+	
+	private float getDiffXetY(float playerCoordonnee, float bossCoordonnee)
+	{
+		if (playerCoordonnee > bossCoordonnee)
+			return playerCoordonnee - bossCoordonnee;
+		else
+			return  bossCoordonnee - playerCoordonnee;
+	}
+	
+	private void ifCollision(float angle, double vitesse)
+	{
+  		if(isCollision(this.x,this.y-1)){
+			x += Math.cos(angle) * vitesse;
+  			y+=1;
+  		}
+  		if(isCollision(this.x,this.y+1)){
+			x += Math.cos(angle) * vitesse;
+  			y-=1;
+  		}
+  		if(isCollision(this.x+1,this.y)){
+  			x-=1;
+			y += Math.sin(angle) * vitesse;
+  		}
+  		if(isCollision(this.x-1,this.y)){
+  			x+=1;
+			y += Math.sin(angle) * vitesse;
+  		}
 	}
 	
 	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {		
-		float gX, gY;
+		float diffX, diffY;
 
-		if (player.getX() > this.x)
-			gX = player.getX() - this.x;
-		else
-			gX = this.x - player.getX();
+		diffX = getDiffXetY(player.getX(), this.x);
+		diffY = getDiffXetY(player.getY(), this.y);
 
-		if (player.getY() > this.y)
-			gY = player.getY() - this.y;
-		else
-			gY = this.y - player.getY();
-
-		if (gX > gY) {
+		if (diffX > diffY) {
 			if (player.getX() > this.x)
 				setDirection(3);
 			if (player.getX() < this.x)
@@ -345,33 +411,20 @@ public class MadMouse
 				setDirection(0);
 		}
 
-		float diffX = player.getX() - x;
-		float diffY = player.getY() - y;
+		diffX = player.getX() - x;
+		diffY = player.getY() - y;
 		float angle = (float) Math.atan2(diffY, diffX);
 	  	if(collision)
 	  	{
-	  		if(isCollision(this.x,this.y-1)){
-				x += Math.cos(angle) * vitesse;
-	  			y+=1;
-	  		}
-	  		if(isCollision(this.x,this.y+1)){
-				x += Math.cos(angle) * vitesse;
-	  			y-=1;
-	  		}
-	  		if(isCollision(this.x+1,this.y)){
-	  			x-=1;
-				y += Math.sin(angle) * vitesse;
-	  		}
-	  		if(isCollision(this.x-1,this.y)){
-	  			x+=1;
-				y += Math.sin(angle) * vitesse;
-	  		}
-	  		
-
+	  		ifCollision(angle, vitesse);
 	  	} else {
 			x += Math.cos(angle) * vitesse;
 			y += Math.sin(angle) * vitesse;
 		}
+	}
+	
+	public int getPtVie() {
+		return this.ptVie;
 	}
 	
 	public void setDirection(int direction) {
@@ -390,7 +443,7 @@ public class MadMouse
 	
 	public boolean isSaved(){
 		if(!living){
-			System.out.println("MadMouse est sauvé.");
+			System.out.println("MadMouse est mort.");
 			return true;
 		} else {
 			return false;
@@ -425,7 +478,6 @@ public class MadMouse
 		return futurY;
 	}
 	
-	
 	public float getX()
 	{
 		return this.x;
@@ -437,3 +489,4 @@ public class MadMouse
 	}
 
 }
+
