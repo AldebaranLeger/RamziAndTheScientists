@@ -31,6 +31,7 @@ public class Menu extends BasicGameState implements ComponentListener {
 		this.stateBasedGame = stateBasedGame;
 		this.container = gc;
 		background = new Image("ressources/background/Background_menu.png");
+		System.out.println(background.getHeight());
 		btnPlay = new Image("ressources/boutons/Bouton_Jouer.png");
 		btnOptions = new Image("ressources/boutons/Bouton_Option.png");
 		btnExit = new Image("ressources/boutons/Bouton_Quitter.png");
@@ -38,13 +39,12 @@ public class Menu extends BasicGameState implements ComponentListener {
 		options = new MouseOverArea(gc, btnOptions, SPACE+120, gc.getHeight() - btnOptions.getHeight()*2-50, this);
 		exit = new MouseOverArea(gc, btnExit, SPACE+230, gc.getHeight() - btnExit.getHeight()*2-50, this);
 	}
-
 	
 	public void render(GameContainer gc, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
 		background.draw(0, 0, gc.getWidth(), gc.getHeight());
 		btnPlay.setRotation(-35);
 		btnOptions.setRotation(-55);
-		btnExit.setRotation(-60);
+		btnExit.setRotation(-50);
 		play.render(gc, g);
 		play.setMouseOverColor(Color.gray);
 		options.render(gc, g);

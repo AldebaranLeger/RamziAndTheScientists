@@ -1,13 +1,12 @@
 package game;
-
+import game.*;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 //implémente la boucle infinie
-public class WindowGame extends StateBasedGame {
-	
+public class WindowGame extends StateBasedGame {	
 	
 	//chaque state doit avoir un id
 	public static final int STARTMENU = 0;

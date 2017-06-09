@@ -51,7 +51,7 @@ public abstract class Ennemi {
 		this.animations[5] = loadAnimation(spriteSouris, 1, 9, 1);
 		this.animations[6] = loadAnimation(spriteSouris, 1, 9, 2);
 		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
-
+		
 		return animations;
 	}
 	
@@ -72,8 +72,7 @@ public abstract class Ennemi {
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
 		for (int x = startX; x < endX; x++) 
-			animation.addFrame(spriteSheet.getSprite(x, y), 100);
-		
+			animation.addFrame(spriteSheet.getSprite(x, y), 100);		
 		return animation;
 	}
 
@@ -112,7 +111,7 @@ public abstract class Ennemi {
 		}
 
 	}	
-	public boolean agony(){
+	public boolean estAMetamorphoser(){
 		if(smokeToken>=65){
 			return true;
 		} else {
@@ -278,7 +277,6 @@ public abstract class Ennemi {
 			//System.out.println("Ennemi hitbox : getCenter()" + this.box.getCenterX());
 			if(this.box.contains(WorldMap.cursorX,WorldMap.cursorY))
 			{
-				System.out.println("PANAPANAAPANANANA");
 				this.takeDamage(2);
 			}
 		}
