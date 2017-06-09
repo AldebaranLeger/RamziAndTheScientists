@@ -26,8 +26,8 @@ public class MadMouse
 	private int bossTimer = 0; // Timer qui permet de déclencher les différentes attaques
 	private int attaqueCACTimer = 0; // Timer qui permet de déclencher au bout d'un certain temps l'attaque CàC
 	private int attaqueCACState = 0; // Etat de l'attaque au CàC
-	private int ColorState = 0;
-	private Color atkClr;
+	private int prepareAttaqueState = 0;
+	private Color atkClr = new Color(Color.transparent);
 	private int atkDistState=0;
 	private int atkDistUpdate=0;
 	private Rectangle fromage = null;
@@ -35,6 +35,7 @@ public class MadMouse
 	private float xDiff, yDiff, xScale, yScale;
 	Vector2f pos;
 	Vector2f dir;
+	private String srcMadMouse = "madMouse";
 	private int maxPv;
 	private int ptVie;
 	private boolean living = true;
@@ -55,7 +56,7 @@ public class MadMouse
 	
 	public Animation[] prepareAnimation() throws SlickException {
 
-		SpriteSheet spriteMadMouse = new SpriteSheet("ressources/sprites/madMouse.png", 128, 128);
+		SpriteSheet spriteMadMouse = new SpriteSheet("ressources/sprites/"+srcMadMouse+".png", 128, 128);
 		this.animations[0] = loadAnimation(spriteMadMouse, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteMadMouse, 0, 1, 1);
 		this.animations[2] = loadAnimation(spriteMadMouse, 0, 1, 2);
@@ -192,14 +193,26 @@ public class MadMouse
 			case 3 : rotation = 180;
 			break;
 		}
-		switch(this.ColorState){
+		switch(this.prepareAttaqueState){
 		case 1 :
-			atkClr = new Color(Color.yellow);
+			this.srcMadMouse = "madMouseOrange";
+			try {
+				prepareAnimation();
+			} catch (SlickException e1) {e1.printStackTrace();}
+			//atkClr = new Color(Color.yellow);
 			break;
 		case 20 :
-			atkClr = new Color(Color.orange);
+			this.srcMadMouse = "madMouseRouge";
+			try {
+				prepareAnimation();
+			} catch (SlickException e) {e.printStackTrace();}
+			//atkClr = new Color(Color.orange);
 			break;
 		case 40 :
+			this.srcMadMouse = "madMouse";
+			try {
+				prepareAnimation();
+			} catch (SlickException e) {e.printStackTrace();}
 			atkClr = new Color(Color.transparent);
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[0], x-216, y-250);
@@ -229,7 +242,7 @@ public class MadMouse
 			action = 1;
 			attaqueCACTimer=0;
 			attaqueCACState = 0;
-			ColorState=0;
+			prepareAttaqueState=0;
 			break;
 		}
 	}
@@ -261,8 +274,26 @@ public class MadMouse
 	{
 		g.setColor(new Color(0, 0, 0, 0.5f));
 		g.fillOval(x - 32, y - 16, 64, 32); // création d'une ombre
-		g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
 		
+		if(this.prepareAttaqueState >1 && this.prepareAttaqueState <45)
+		{
+			if(this.prepareAttaqueState<20)
+			{
+				if(this.prepareAttaqueState%3 == 1){
+					this.srcMadMouse = "madMouseOrange";
+					g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
+				}
+			}else
+			{
+				if(this.prepareAttaqueState%2 == 1){
+					this.srcMadMouse = "madMouseRouge";
+					g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
+				}
+			}
+		}
+		else{
+			g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
+		}
 		animateAttaqueCACbyTimer(g);
 	}
 	
@@ -328,7 +359,7 @@ public class MadMouse
 	*/
 	private void prepareAttaqueCAC() {
 		attaqueCACTimer++;
-		ColorState++;
+		prepareAttaqueState++;
 		attaqueCACState = 1;
 		if(attaqueCACTimer>=50)
 		{
