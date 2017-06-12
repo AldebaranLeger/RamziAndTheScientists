@@ -7,25 +7,35 @@ import org.newdawn.slick.tiled.TiledMap;
 
 import game.*;
 import levels.level1.*;
-import levels.level2.*;
 
 public abstract class Level {
 	
-	private TiledMap map;
-	private MadMouse boss; //type variable à changer par la classe mère des boss
-	private Ennemi[] tabEnnemi;
-	private int nbEnnemisDebut;
+	protected WorldMap worldMap;
+	protected Ramzi player;
+	protected TiledMap map;
+	protected MadMouse boss; //type variable à changer par la classe mère des boss
+	protected Ennemi[] tabEnnemi;
+	protected int nbEnnemisDebut;
+	protected int nbEnnemisSauves;
+	protected int levelId;
+	protected int totalEnnemisSauves;
+	protected boolean bossArrives=false;	
+	protected float xEnnemiSauve, yEnnemiSauve; //coordonnées de l'ennemi enregistrée lorsque ses points de contamination sont à zéro (ennemi sauvé)
 	
-	public Level(TiledMap map, MadMouse boss) 
+	/*public Level(WorldMap worldMap, TiledMap map) 
 	{
+		this.worldMap = worldMap;
 		this.map = map;
-		this.boss = boss;
+	}*/
+	public Level(WorldMap worldMap, TiledMap map, Ramzi player){
+		this.worldMap = worldMap;
+		this.map = map;
+		this.player = player;
 	}
 	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException 
 	{
-		//instanciation de la map
-		//ajout des ennemis en fonction des valeurs (nbEnnemisDebut)
+		
 	}
 	
 	public void render(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException 
@@ -38,13 +48,22 @@ public abstract class Level {
 		
 	}
 	
+	public void setTabEnnemi(Ennemi[] tabEnnemi) {
+		this.tabEnnemi = tabEnnemi;
+	}
+	
 	public int getNbEnnemisDebut() {
 		return this.nbEnnemisDebut;
+	}
+	public int getNbEnnemisSauves() {
+		return this.nbEnnemisSauves;
 	}
 	
 	public Ennemi[] getTabEnnemi() {
 		return this.tabEnnemi;
 	}
-
-
+	
+	public TiledMap getMap() { return this.map;	}
+	public int getLevelId(){return this.levelId;}
+	public MadMouse getBoss() {return this.boss;}
 }
