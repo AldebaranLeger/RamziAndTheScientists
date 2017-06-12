@@ -11,25 +11,23 @@ import org.newdawn.slick.tiled.TiledMap;
 public abstract class Ennemi {
 
 	protected float x, y;
-	protected int direction = 2;
+	protected int direction;
 	protected boolean moving = false;
-	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleMouse = new Animation[3];
+	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleEnnemi = new Animation[3];
 	private TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
-	protected int var = 0;
 	protected Graphics g;
-	protected int place;
 	protected boolean living=true;
-	protected Rectangle box;
+	protected Rectangle hitbox;
 	//timer d'animation effet
 	private int smokeToken = 0;
-	protected int littleMouseDirect;
-	private boolean littleMouseRunning = false;
-	private float litX, litY; 
+	protected int ennemiDirection;
+	private boolean ennemiRunning = false;
+	private float ennemiX, ennemiY; 
 
-	public Ennemi(TiledMap m, float x, float y) {
-		this.map = m;
+	public Ennemi(TiledMap map, float x, float y) {
+		this.map = map;
 		this.x = x;
 		this.y = y;
 	}
@@ -42,32 +40,44 @@ public abstract class Ennemi {
 	
 	public Animation[] prepareAnimation(String srcSprite) throws SlickException {
 
-		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
-		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
-		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);
-		this.animations[2] = loadAnimation(spriteSouris, 0, 1, 2);
-		this.animations[3] = loadAnimation(spriteSouris, 0, 1, 3);
-		this.animations[4] = loadAnimation(spriteSouris, 1, 9, 0);
-		this.animations[5] = loadAnimation(spriteSouris, 1, 9, 1);
-		this.animations[6] = loadAnimation(spriteSouris, 1, 9, 2);
-		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
+		SpriteSheet spriteEnnemis = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
+		this.animations[0] = loadAnimation(spriteEnnemis, 0, 1, 0);
+		this.animations[1] = loadAnimation(spriteEnnemis, 0, 1, 1);
+		this.animations[2] = loadAnimation(spriteEnnemis, 0, 1, 2);
+		this.animations[3] = loadAnimation(spriteEnnemis, 0, 1, 3);
+		this.animations[4] = loadAnimation(spriteEnnemis, 1, 9, 0);
+		this.animations[5] = loadAnimation(spriteEnnemis, 1, 9, 1);
+		this.animations[6] = loadAnimation(spriteEnnemis, 1, 9, 2);
+		this.animations[7] = loadAnimation(spriteEnnemis, 1, 9, 3);
 
+		return animations;
+	}	
+	public Animation[] prepareAnimationRabbit(String srcSprite) throws SlickException {
+		SpriteSheet spriteEnnemis = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
+		this.animations[0] = loadAnimation(spriteEnnemis, 0, 1, 3);
+		this.animations[1] = loadAnimation(spriteEnnemis, 0, 1, 0);
+		this.animations[2] = loadAnimation(spriteEnnemis, 0, 1, 1);
+		this.animations[3] = loadAnimation(spriteEnnemis, 0, 1, 2);
+		this.animations[4] = loadAnimation(spriteEnnemis, 1, 6, 3);
+		this.animations[5] = loadAnimation(spriteEnnemis, 1, 6, 0);
+		this.animations[6] = loadAnimation(spriteEnnemis, 1, 6, 1);
+		this.animations[7] = loadAnimation(spriteEnnemis, 1, 6, 2);
 		return animations;
 	}
 	
 	public Animation[] prepareSmokeAnimation() throws SlickException {
 		SpriteSheet spriteSmoke = new SpriteSheet("ressources/sprites/Effets/Disparition_Ennemis.png", 98, 128);
-		this.dyingSmoke[0] = loadAnimation(spriteSmoke, 0, 11, 0);
+		this.dyingSmoke[0] = loadAnimation(spriteSmoke, 0, 12, 0);
 		return dyingSmoke;
 	}
 	
-	public Animation[] prepareLittleMouseAnimation() throws SlickException {
-		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/Souris_Sauvee.png", 64, 64);
-		this.littleMouse[1] = loadAnimation(spriteLittle, 0, 3, 0);
-		this.littleMouse[2] = loadAnimation(spriteLittle, 1, 3, 1);
-		return littleMouse;
+	/*prepare l'animation des ennemis à l'état de sauvé*/
+	public Animation[] prepareLittleEnnemiAnimation(String srcSprite) throws SlickException {
+		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/" + srcSprite, 64, 64);
+		this.littleEnnemi[1] = loadAnimation(spriteLittle, 0, 3, 0);
+		this.littleEnnemi[2] = loadAnimation(spriteLittle, 1, 3, 1);
+		return littleEnnemi;
 	}
-
 
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
@@ -79,41 +89,59 @@ public abstract class Ennemi {
 
 	public void render(Graphics g) throws SlickException
 	{
-		//hitbox
-		//Graphics gr = new Graphics();
-		//gr.setColor(new Color(0, 0, 0, 0.8f));
-		//gr.fillRect(x - 16, y-32, 32, 32); //hitbox
-		this.box = new Rectangle(this.x - 16, this.y - 32, 32, 32);
 
+		this.hitbox = new Rectangle(this.x - 16, this.y - 16, 32, 32);
+		
 		if(!isSaved()) {
-			g.setColor(new Color(0, 0, 0, 0.5f));
-			g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
-			g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
+			createShadow(g);
 		}else {
-			smokeToken++;
-			if(!littleMouseRunning){
-				litX = x - 20;
-				litY = y - 50;
-				g.drawAnimation(littleMouse[littleMouseDirect], litX, litY);		
-				littleMouseRunning = true;
-			} else {
-				switch(littleMouseDirect){
-				case 1 :
-					litX += 5;
-					break;
-				case 2 :
-					litX -= 5;
-					break;
-				}
-				g.drawAnimation(littleMouse[littleMouseDirect], litX, litY);
-			}
-			g.drawAnimation(dyingSmoke[0], x-32, y-90);
-			moving=false;
+			this.escapeLittleEnnemi(g);
 		}
 
-	}	
-	public boolean agony(){
-		if(smokeToken>=65){
+	}
+	
+	private void escapeLittleEnnemi(Graphics g)
+	{
+		if(!ennemiRunning){
+			this.popLittleEnnemi(g);
+		} else {
+			this.runLittleEnnemi(g);
+		}
+		g.drawAnimation(dyingSmoke[0], x-32, y-90);
+		smokeToken++;
+		moving=false;
+	}
+	
+	private void createShadow(Graphics g)
+	{
+		g.setColor(new Color(0, 0, 0, 0.5f));
+		g.fillOval(x - 16, y - 8, 32, 16); // création d'une ombre
+		g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
+	}
+	
+	private void popLittleEnnemi(Graphics g)
+	{
+		ennemiX = x - 20;
+		ennemiY = y - 50;
+		g.drawAnimation(littleEnnemi[ennemiDirection], ennemiX, ennemiY);		
+		ennemiRunning = true;
+	}
+	
+	private void runLittleEnnemi(Graphics g)
+	{
+		switch(ennemiDirection){
+			case 1 :
+				ennemiX += 5;
+				break;
+			case 2 :
+				ennemiX -= 5;
+				break;
+		}
+		g.drawAnimation(littleEnnemi[ennemiDirection], ennemiX, ennemiY);
+	}
+	
+	public boolean estAMetamorphoser(){
+		if(smokeToken>=40){
 			return true;
 		} else {
 			return false;
@@ -122,10 +150,12 @@ public abstract class Ennemi {
 	
 	public boolean isCollision(float x, float y) 
 	{
-		int tileW = map.getTileWidth();
-		int tileH = map.getTileHeight();
-		int collisionLayer = this.map.getLayerIndex("collision");
-	//	if(this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer)!=null){
+		try
+		{
+			int tileW = map.getTileWidth();
+			int tileH = map.getTileHeight();
+			int collisionLayer = this.map.getLayerIndex("collision");
+			
 			Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
 			boolean collision = tile != null;
 			if (collision)
@@ -133,12 +163,13 @@ public abstract class Ennemi {
 				Color color = tile.getColor((int) x % tileW, (int) y % tileH);
 				collision = color.getAlpha() > 0;
 			}
-			
 			return collision;
-//		} else {
-//			this.death();
-//			return true;
-//		}
+		}
+		catch(ArrayIndexOutOfBoundsException e)
+		{
+			this.death();
+			return true;
+		}
 	}
 
 	protected float getFuturX(int delta, double vitesse)
@@ -181,35 +212,52 @@ public abstract class Ennemi {
 		return aireVue;
 
 	}
-
-	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {		
-		float gX, gY;
-
-		if (player.getX() > this.x)
-			gX = player.getX() - this.x;
-		else
-			gX = this.x - player.getX();
-
-		if (player.getY() > this.y)
-			gY = player.getY() - this.y;
-		else
-			gY = this.y - player.getY();
-
-		if (gX > gY) {
-			if (player.getX() > this.x)
-				setDirection(3);
-			if (player.getX() < this.x)
-				setDirection(1);
-		} else {
-			if (player.getY() > this.y)
-				setDirection(2);
-			if (player.getY() < this.y)
-				setDirection(0);
+	
+	private float getDiffPosition(float playerPosition, float ennemiPosition)
+	{
+		if (playerPosition > ennemiPosition)
+		{
+			return playerPosition - ennemiPosition;
 		}
+		else
+		{
+			return ennemiPosition - playerPosition;
+		}
+	}
+	
+	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {
+		float diffX, diffY;
 
-		float diffX = player.getX() - x;
-		float diffY = player.getY() - y;
+		diffX = getDiffPosition(player.getX(), this.x);
+		diffY = getDiffPosition(player.getY(), this.y);
+
+		if (diffX > diffY) {
+			if (player.getX() > this.x){
+				setDirection(3);
+			}
+			if (player.getX() < this.x){
+				setDirection(1);
+			}
+		} else {
+			if (player.getY() > this.y){
+				setDirection(2);
+			}
+			if (player.getY() < this.y){
+				setDirection(0);
+			}
+		}
+		seDeplace(player.getX(), player.getY(), collision, vitesse);
+	}
+	
+	/*
+	 * Only used in suivrePLayer()
+	 * */
+	private void seDeplace(float playerX, float playerY, boolean collision, double vitesse)
+	{
+		float diffX = playerX - x;
+		float diffY = playerY - y;
 		float angle = (float) Math.atan2(diffY, diffX);
+		
 	  	if(collision)
 	  	{
 	  		if(isCollision(this.x,this.y-2)){
@@ -268,23 +316,7 @@ public abstract class Ennemi {
 		this.moving = moving;
 	}
 	
-	public void calcHitBox()
-	{
-		
-		if(this.box!=null)
-		{
-			//System.out.println(this.box.contains(WorldMap.cursorX,WorldMap.cursorY));
-			//System.out.println("Ennemi hitbox : cursor " + WorldMap.cursorX + " & " + WorldMap.cursorY);
-			//System.out.println("Ennemi hitbox : getCenter()" + this.box.getCenterX());
-			if(this.box.contains(WorldMap.cursorX,WorldMap.cursorY))
-			{
-				System.out.println("PANAPANAAPANANANA");
-				this.takeDamage(2);
-			}
-		}
-	}
-	
-	public void takeDamage(int dmg){
+	public void takeDamage(int dmg) {
 		this.ptVie-=dmg;
 		if(this.ptVie<=0)
 			this.death();
@@ -302,3 +334,4 @@ public abstract class Ennemi {
 		}
 	}
 }
+

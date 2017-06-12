@@ -1,18 +1,17 @@
 package game;
-
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 //implémente la boucle infinie
-public class WindowGame extends StateBasedGame {
-	
+public class WindowGame extends StateBasedGame {	
 	
 	//chaque state doit avoir un id
 	public static final int STARTMENU = 0;
 	public static final int WORLDMAP = 1; 
 	public static final int OPTIONS = 2;
+	private static AppGameContainer app;
 	
 	public WindowGame()
 	{
@@ -35,7 +34,9 @@ public class WindowGame extends StateBasedGame {
 
 	 public static void main(String[] args) throws SlickException {
 		 try {
-			 new AppGameContainer(new WindowGame(), 877, 600, false).start();
+			app = new AppGameContainer(new WindowGame(), 877, 600, false);
+			app.setTargetFrameRate(30);
+			app.start();
 
 		 }catch (SlickException e){
 			 e.printStackTrace();
