@@ -1,5 +1,8 @@
 package levels.level2;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -7,20 +10,19 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 
+import game.BulletEnnemi;
 import game.Ramzi;
 import game.WorldMap;
 import levels.Level;
 import levels.level1.MadMouse;
-import levels.level1.Souris1;
-import levels.level1.Souris2;
 
 public class Level2 extends Level{
-	private MadMouse bunnySterious; //changer classe MadMouse par celle de Bun Nysterious
-
-	public Level2(WorldMap worldMap, TiledMap map, Ramzi player) {
+	private MadMouse bunNysterio; //changer classe MadMouse par celle de Bun Nysterious
+	private List<BulletEnnemi> bulletEnnemi = new ArrayList<BulletEnnemi>();
+	
+	public Level2(WorldMap worldMap, TiledMap map, Ramzi player) throws SlickException {
 		super(worldMap, map, player);
-		super.levelId = 2;
-		super.nbEnnemisDebut = 15;
+		super.nbEnnemisDebut = 1;
 	}
 	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException {
@@ -41,6 +43,7 @@ public class Level2 extends Level{
 			{
 				if(tabEnnemi[i]!=null){
 					tabEnnemi[i].render(g);
+					ennemiBulletRefresh(g);
 				}
 			}
 		}
@@ -57,7 +60,7 @@ public class Level2 extends Level{
 					tabEnnemi[i].update(delta);
 					if(tabEnnemi[i].isSaved()){
 						xEnnemiSauve = tabEnnemi[i].getX();
-						yEnnemiSauve = tabEnnemi[i].getY();
+						yEnnemiSauve = tabEnnemi[i].getY();					
 						if(tabEnnemi[i].estAMetamorphoser()){
 							tabEnnemi[i]=null;
 							totalEnnemisSauves++;
@@ -69,20 +72,30 @@ public class Level2 extends Level{
 				}
 				if(nbEnnemisSauves==nbEnnemisDebut){
 					tabEnnemi=null;
-					bunnySterious = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve); //le boss bunnySterious apparaît aux coordonnées du dernier ennemi sauvé
+					bunNysterio = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve); //le boss bunnySterious apparaît aux coordonnées du dernier ennemi sauvé
 				}
 			}
-		} else if(bossArrives) {
-			if(bunnySterious!=null) {
-				worldMap.hud.setBossMaxHp(bunnySterious.getMaxPv());
-				worldMap.hud.updateBossHp(bunnySterious.getPtVie());
-				if(!bunnySterious.isSaved()) {
-					bunnySterious.update(container, stateBasedGame, delta);
-				} else {
-					worldMap.setYouWin(true);
-					//passage au niveau suivant
+			for(int j=0; j<this.bulletEnnemi.size(); j++)
+			{
+				if(this.bulletEnnemi!=null)
+				{
+					this.bulletEnnemi.get(j).update(delta);
+					if(this.bulletEnnemi.get(j).getActive() == false)
+					{
+						this.bulletEnnemi.remove(j);
+					}
 				}
-				
+			}			
+		} else if(bossArrives) {
+			if(bunNysterio!=null) {
+				worldMap.hud.setBossMaxHp(bunNysterio.getMaxPv());
+				worldMap.hud.updateBossHp(bunNysterio.getPtVie());
+				if(!bunNysterio.isSaved()) {
+					bunNysterio.update(container, stateBasedGame, delta);
+				} else {
+					youWin=true;
+					worldMap.setFinDePartie(true); //fin du jeu quand le joueur a gagné. 
+				}				
 			}			
 		}		
 	}
@@ -131,9 +144,9 @@ public class Level2 extends Level{
 				{
 					int random = (int)(Math.random() * 2 +1);
 					if(random == 1)
-						tabEnnemi[i] = new Souris1(map,xEnnemi,yEnnemi);
+						tabEnnemi[i] = new Lapin1(map,player, xEnnemi,yEnnemi);
 					else
-						tabEnnemi[i] = new Lapin1(map,player,xEnnemi,yEnnemi);
+						tabEnnemi[i] = new Lapin2(map,player,xEnnemi,yEnnemi, this);
 				}
 				// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
 				if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
@@ -151,20 +164,38 @@ public class Level2 extends Level{
 	 * @throws SlickException 
 	 */
 	public void renderBoss(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
-		if(bunnySterious!=null && !bossArrives){
+		if(bunNysterio!=null && !bossArrives){
 			bossArrives=true;
 			System.out.println("Bun Nysterious apparait.");
-			bunnySterious.init();
+			bunNysterio.init();
 		}
 		if(bossArrives){
-			if(bunnySterious!=null){
-				if(!bunnySterious.isSaved()){
-					this.bunnySterious.render(container, stateBasedGame, g);
+			if(bunNysterio!=null){
+				if(!bunNysterio.isSaved()){
+					this.bunNysterio.render(container, stateBasedGame, g);
 				} else {
-					bunnySterious = null;
+					bunNysterio = null;
 				}
 			}
 		}		
 	}
-	public MadMouse getBoss() {return this.bunnySterious;}
+	
+	private void ennemiBulletRefresh(Graphics g) throws SlickException {
+		if(bulletEnnemi!=null){
+			for(int i = 0; i< this.bulletEnnemi.size(); i++){
+				if(this.bulletEnnemi.get(i)!=null){
+					this.bulletEnnemi.get(i).render(g);
+				}
+			}
+		}
+	}
+	
+	public void createEnnemiProjectile(Lapin2 ennemi, int directionProjectile) throws SlickException
+	{
+		if(this.bulletEnnemi!= null){
+			this.bulletEnnemi.add(new BulletEnnemi(worldMap, map, player, directionProjectile, ennemi));
+		}		
+	}
+	
+	public MadMouse getBoss() {return this.bunNysterio;}
 }

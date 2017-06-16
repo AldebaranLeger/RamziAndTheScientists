@@ -199,14 +199,12 @@ public class MadMouse
 			try {
 				prepareAnimation();
 			} catch (SlickException e1) {e1.printStackTrace();}
-			//atkClr = new Color(Color.yellow);
 			break;
 		case 20 :
 			this.srcMadMouse = "madMouseRouge";
 			try {
 				prepareAnimation();
 			} catch (SlickException e) {e.printStackTrace();}
-			//atkClr = new Color(Color.orange);
 			break;
 		case 40 :
 			this.srcMadMouse = "madMouse";
@@ -474,7 +472,7 @@ public class MadMouse
 	
 	public boolean isSaved(){
 		if(!living){
-			System.out.println("MadMouse est mort.");
+			System.out.println("MadMouse est vaincu.");
 			return true;
 		} else {
 			return false;

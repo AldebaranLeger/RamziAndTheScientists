@@ -1,4 +1,5 @@
 package levels.level1;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -10,27 +11,30 @@ import org.newdawn.slick.tiled.TiledMap;
 import game.Ramzi;
 import game.WorldMap;
 import levels.Level;
-import levels.level2.Lapin1;
 import levels.level2.Level2;
 
 public class Level1 extends Level {
-	public Rectangle ladderSquare;
-	private MadMouse madMouse;
+	private MadMouse madMouse; 
 		
 	public Level1(WorldMap worldMap, TiledMap map, Ramzi player)
 	{
 		super(worldMap, map, player);
-		super.levelId = 1;
 		super.nbEnnemisDebut = 1;  
 	}
 	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException {
-	
+		tileW = map.getTileWidth();
+		tileH = map.getTileHeight();
+		collisionLayer = map.getLayerIndex("collision");
+		mapLayer = map.getLayerIndex("sol");
+		super.prepareAnimationTreasure("treasure.png");
+		
 		addEnnemis();
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
 			tabEnnemi[i].init();
 		}
+		super.closedTreasure = new Image("ressources/img/closedTreasure.png"); //image du trésor fermé (avant que le joueur ne l'ouvre)
 	}
 	
 	public void render(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
@@ -47,6 +51,20 @@ public class Level1 extends Level {
 			}
 		}
 		renderBoss(container, stateBasedGame, g);
+		if(youWin==true && treasureSquareVisible == true) {
+			if(openTreasure == false)
+			{
+				g.setColor(Color.red);
+				closedTreasure.draw(bossLastX-32, bossLastY-32);
+			}
+			if(createLadder && openTreasure) {
+				g.drawAnimation(super.animations[0], bossLastX-32, bossLastY-32);
+			}
+			if(ladderSquareVisible == true) {
+				g.setColor(Color.blue);
+				g.fillRect(xLadder, yLadder , 10, 10);// échelle pour passer au second niveau
+			}
+		}
 	}
 	
 	public void update(GameContainer container, StateBasedGame stateBasedGame, int delta) throws SlickException {
@@ -81,16 +99,23 @@ public class Level1 extends Level {
 				if(!madMouse.isSaved()) {
 					madMouse.update(container, stateBasedGame, delta);
 				} else {
-					worldMap.setYouWin(true);
-					worldMap.bossLastX = madMouse.getX();
-					worldMap.bossLastY = madMouse.getY();
-					TiledMap map2 = new TiledMap("ressources/map/map2.tmx"); //map niveau 2
-					Level nextLevel = new Level2(worldMap, map2, player);
-					worldMap.updateCurrentLevel(nextLevel);
-					ladderSquare = new Rectangle(madMouse.getX(), madMouse.getY(), 40, 40);
+					youWin = true;
+					bossLastX = madMouse.getX();
+					bossLastY = madMouse.getY();
+					treasureSquare = new Rectangle (bossLastX, bossLastY, 32,32);			
 				}
 			}			
-		}		
+		}
+		if(treasureSquare != null)
+		{
+			timerLadder++;
+			this.prepareTreasure();			
+		}
+		if(createLadder == true) 
+		{
+			this.prepareNextLevel();
+		}
+		
 	}
 
 	private void renderRamzi(Graphics g) throws SlickException {
@@ -104,29 +129,87 @@ public class Level1 extends Level {
 		}
 	}
 	
+	private void prepareTreasure()
+	{
+		if(timerLadder > 50) {
+			treasureSquareVisible = true;
+			if(treasureSquare.intersects(player.calcZoneCollision())) 
+			{
+				openTreasure = true; // déclenche l'animation
+				createLadder = true; //créer l'échelle après l'ouverture du trésor contenant les items
+			}
+			timerLadder = 0;
+		}
+	}
+	
+	private void prepareNextLevel()
+	{
+		//si l'échelle n'est pas crée alors on la crée.
+		if(yLadder == 0 && xLadder == 0)
+		{
+			addLadder();
+		}
+		//si le joueur passe sur l'échelle, on passe au niveau suivant
+		if(ladderSquare.intersects(player.calcZoneCollision())) 
+		{
+			try {
+				nextLevel();
+			} catch (SlickException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void nextLevel() throws SlickException
+	{		
+		TiledMap map2 = new TiledMap("ressources/map/map2.tmx"); //map niveau 2
+		Level nextLevel = new Level2(worldMap, map2, player);
+		worldMap.updateCurrentLevel(nextLevel);
+		worldMap.initLevel();
+		player.setMap(map2);
+		player.setX(560); //on réinitialise la position du joueur sur la nouvelle map
+		player.setY(180);
+	}
+	
+	private void addLadder() 
+	{
+		do {
+			inRamziRayon  = false;
+			yLadder = (float)(Math.random() * ((bossLastY +60) - (bossLastY -60)) + (bossLastY -60)); 
+			xLadder = (float)(Math.random() * ((bossLastX +60) - (bossLastX-60)) + (bossLastX-60));		
+			Image tileMap = map.getTileImage((int) xLadder / tileW, (int) yLadder / tileH, mapLayer);
+			Image tileCol = map.getTileImage((int) xLadder / tileW, (int) yLadder / tileH, collisionLayer);
+			inMap = tileMap != null;
+			inCollision = tileCol != null;
+			if(inMap)
+			{
+				ladderSquare = new Rectangle(xLadder , yLadder, 10, 10); //zone de collision de l'échelle (passage au niveau suivant)
+				ladderSquareVisible = true;
+			}
+			// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
+			if (( xLadder > (player.getX() - 60) && xLadder < (player.getX() + 60))
+					&& ( yLadder > (player.getY() - 60) && ( yLadder < player.getY() + 60))) 
+			{
+				inRamziRayon = true;
+			}
+		}while(!inMap || inRamziRayon);
+	}
+	
 	/**
 	 * Placement des ennemis de manière aléatoire sur la carte
 	 * @throws SlickException 
 	 */
 	public void addEnnemis() throws SlickException {
-		int tileW = map.getTileWidth();
-		int tileH = map.getTileHeight();
-		int collisionLayer = map.getLayerIndex("collision");
-		int mapLayer = map.getLayerIndex("sol");
 		float yEnnemi = 0;
 		float xEnnemi = 0;
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
-			boolean inMap = false;
-			boolean inCollision = false;
-			boolean inRamziRayon;
 			do
 			{
 				inRamziRayon  = false;
 				//coordonnées de l'ennemi calculé aléatoirement
 				yEnnemi = (float)(Math.random() * (map.getHeight() * map.getTileHeight() - 0)); 
-				xEnnemi = (float)(Math.random() * (map.getWidth() * map.getTileWidth() - 0));
-				
+				xEnnemi = (float)(Math.random() * (map.getWidth() * map.getTileWidth() - 0));				
 				
 				Image tileMap = map.getTileImage((int) xEnnemi / tileW, (int) yEnnemi / tileH, mapLayer);
 				Image tileCol = map.getTileImage((int) xEnnemi / tileW, (int) yEnnemi / tileH, collisionLayer);
@@ -139,7 +222,7 @@ public class Level1 extends Level {
 					if(random == 1)
 						tabEnnemi[i] = new Souris1(map,xEnnemi,yEnnemi);
 					else
-						tabEnnemi[i] = new Lapin1(map,player,xEnnemi,yEnnemi);
+						tabEnnemi[i] = new Souris2(map,player,xEnnemi,yEnnemi);
 				}
 				// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
 				if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
@@ -154,7 +237,6 @@ public class Level1 extends Level {
 	
 	/**
 	 * affiche le boss du niveau quand le dernier ennemi est sauvé.
-	 * @throws SlickException 
 	 */
 	public void renderBoss(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
 		if(madMouse!=null && !bossArrives){

@@ -29,14 +29,11 @@ public class Souris2 extends Ennemi {
 		float futurX = getFuturX(delta, 0.5);
 		float futurY = getFuturY(delta, 0.5);
 		float[] vueSouris = super.getVueEnnemi(distanceVue);
-
 		distanceVue = getDistanceVue();
 
 		this.shouldMove(vueSouris);
 
 		this.shouldAvoidCollision(delta, futurX, futurY);
-		
-		//super.calcHitBox();
 	}
 	
 	private int getDistanceVue()
@@ -67,13 +64,9 @@ public class Souris2 extends Ennemi {
 		if (moving) {
 			if (!super.isCollision(futurX, futurY)) {
 				super.suivrePlayer(player, vitesseDeplacement, delta, false);
-				// this.x = futurX;
-				// this.y = futurY;
 			} else{
 				super.suivrePlayer(player, vitesseDeplacement, delta, true);
 			}
 		}
-		
-		//super.calcHitBox();
 	}
 }

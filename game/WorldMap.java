@@ -17,7 +17,6 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 import levels.*;
 import levels.level1.*;
-import levels.level2.*;
 
 public class WorldMap extends BasicGameState implements ComponentListener {
 	
@@ -25,7 +24,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		public int id;
 		private StateBasedGame stateBasedGame; //isolated different stages of the game (menu, ingame, hiscores, etc) into different states so they can be easily managed and maintained.
 		private GameContainer container; //GameContainer contient le contexte dans lequel notre jeu sera exécuté
-		private TiledMap currentMap /*map du niveau courant*/, map1, map2; //une map pour chaque niveau
+		private TiledMap map1; //une map pour chaque niveau
 		private Ramzi player;
 		private Camera camera;
 		public static Ennemi[] tabEnnemi;
@@ -37,12 +36,11 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private ProjCheese tabCheese[] = new ProjCheese[10];
 		//menu pause
 		private boolean escapeMenu;
-		private Image btnResume, btnExit, btnMainMenu, btnNextLevel, txtGameOver, txtYouWin;
-		private MouseOverArea resume, exit, mainMenu, nextLevel;		
-		//écran Game Over
-		private boolean gameOver = false; 
-		//écran Gagné !
-		private boolean youWin = false;	
+		private Image btnResume, btnExit, btnMainMenu, txtGameOver, txtYouWin;
+		private MouseOverArea resume, exit, mainMenu;	
+		
+		private boolean gameOver = false;
+		private boolean finDePartie = false;
 
 		private int attaqueDistanceCooldown = -1;
 		
@@ -65,8 +63,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		player.init();
 		
 		this.currentLevel = new Level1(this, map1, player); //niveau 1 au démarrage du jeu (sauvegarde impossible)	
-		currentLevel.setTabEnnemi(tabEnnemi);
-		currentLevel.init(container, stateBasedGame);
+		initLevel();
 		
 		this.hud = new Hud(player);
 		this.hud.init(this);
@@ -78,6 +75,13 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		
 		createMenu();
 	
+	}
+	
+	public void initLevel() throws SlickException 
+	{
+		tabEnnemi = new Ennemi[100];
+		this.currentLevel.setTabEnnemi(tabEnnemi);
+		this.currentLevel.init(container, stateBasedGame);
 	}
 	
 	/**
@@ -103,9 +107,10 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		} else
 		{
 			this.player.update(delta);
-			currentLevel.setTabEnnemi(tabEnnemi);
-			this.currentLevel.update(container, stateBasedGame, delta);
+			hud.update(delta);
 			tabEnnemi = currentLevel.getTabEnnemi();
+			currentLevel.setTabEnnemi(tabEnnemi);
+			this.currentLevel.update(container, stateBasedGame, delta);			
 			camera.update(container);
 			playerBulletUpdate(delta);
 			bossBulletUpdate(delta);			
@@ -129,14 +134,11 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		btnResume = new Image("ressources/boutons/resume.png");
 		btnExit = new Image("ressources/boutons/btnExit.png");
 		btnMainMenu = new Image ("ressources/boutons/mainmenu.png");
-		btnNextLevel = new Image("ressources/boutons/btnNextLevel.png");
 		resume = new MouseOverArea(container, btnResume, 300, container.getHeight() - btnResume.getHeight()*10, this);
-		nextLevel = new MouseOverArea(container, btnNextLevel, 300, container.getHeight() - btnNextLevel.getHeight()*10, this);
 		mainMenu = new MouseOverArea(container, btnMainMenu, 300, container.getHeight() - btnMainMenu.getHeight()*10, this);
 		exit = new MouseOverArea(container, btnExit, 320, container.getHeight() - btnExit.getHeight() *6, this);
-		//écran game over
+
 		txtGameOver = new Image("ressources/boutons/gameover.png");
-		//écran Gagné
 		txtYouWin = new Image("ressources/boutons/youWin.png");
 	}
 	
@@ -194,19 +196,15 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			mainMenu.setMouseOverColor(Color.orange);
 			exit.render(container, g);
 			exit.setMouseOverColor(Color.orange);
-		} else if(youWin == true){
-			g.setColor(Color.blue);
-			g.fillRect(bossLastX, bossLastY, 40, 40);// échelle pour passer au second niveau
-			
-			//affiche l'écran de fin de partie
-			/*g.resetTransform();	
+		}else if(this.finDePartie == true) {
+			g.resetTransform();	
 			g.fillRect(0, 0, container.getWidth() + 200, container.getHeight());
 			g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
 			txtYouWin.draw(340, container.getHeight() - txtYouWin.getHeight()*11);
 			mainMenu.render(container, g);
 			mainMenu.setMouseOverColor(Color.orange);			
 			exit.render(container, g);
-			exit.setMouseOverColor(Color.orange);	*/		
+			exit.setMouseOverColor(Color.orange);
 		}else {
 			this.hud.render(g);
 		}
@@ -258,7 +256,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	
 	public void createRamziProjectile(int directionProjectile) throws SlickException
 	{
-
 		if(this.attaqueDistanceCooldown == -1){
 			if(this.bullet!= null){
 				this.bullet.add(new Bullet(this, map1, player,directionProjectile));
@@ -267,11 +264,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			this.attaqueDistanceCooldown = 0;
 		}
 		
-	}
-	
-	public void destroyProjectile()
-	{
-		//this.projectile = null;
 	}
 	
 	public void createMadMouseCheese(MadMouse mm, int delta, int nbCheese)
@@ -288,9 +280,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	{
 		tabCheese[i] = null;
 	}
-//	public void bossAtk(int e){
-//		bossAtkState = e;
-//	}
 	
 	public void componentActivated(AbstractComponent source) {
 		System.out.println(source);
@@ -306,10 +295,9 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	public void updateCurrentLevel(Level nextLevel) {
 		this.currentLevel = nextLevel;
 	}
-	public void setYouWin(boolean bool) {this.youWin = bool;}
-	public void setNextLevel(Level currentLevel) {this.currentLevel = currentLevel;}
-	public void setCurrentMap(TiledMap currentMap) {this.currentMap = currentMap;}
 	public int getEnnemisDebut() { return currentLevel.getNbEnnemisDebut();}
 	public int getEnnemisSauves() {return currentLevel.getNbEnnemisSauves();}
-	public MadMouse getBossLevel() {return currentLevel.getBoss();}	
+	public MadMouse getBossLevel() {return currentLevel.getBoss();}
+
+	public void setFinDePartie(boolean b) {this.finDePartie = b;}	
 }

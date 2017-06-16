@@ -9,6 +9,9 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.tiled.TiledMap;
 
+/**
+ * Projectile du joueur Ramzi
+ */
 public class Bullet 
 {
 	private TiledMap map;
@@ -17,7 +20,7 @@ public class Bullet
 	private float xProjectile, yProjectile;
 	private int directionProjectile;
 	private int lived = 0;
-	private boolean active = true;
+	private boolean active = true;//le projectile est visible ou non
 	private static int maxLifetime = 1000;
 	private Graphics projectile;
 	private Rectangle projectileArea;

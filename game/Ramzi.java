@@ -1,5 +1,4 @@
 package game;
-import java.awt.Rectangle;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -8,6 +7,7 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.geom.Polygon;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public class Ramzi{
@@ -26,6 +26,7 @@ public class Ramzi{
 	private boolean isAtking = false;
 	private float mouseX, mouseY;
 	private int immuniteCooldown = 0;
+	Rectangle zoneCollision;
 	
 	private Polygon polygonTop, polygonRight, polygonBottom, polygonLeft;
 	
@@ -219,7 +220,7 @@ public class Ramzi{
 	private Rectangle createDamageArea()
 	{
 		directionAttaque = getDirectionAttaque(mouseX, mouseY);
-		Rectangle damageArea = new Rectangle();
+		Rectangle damageArea = new Rectangle(10,10,10,10);
 		switch(this.directionAttaque)
 		{
 		case 0 :
@@ -286,7 +287,6 @@ public class Ramzi{
 	public void attackADistance(int mX, int mY) throws SlickException
 	{
 		int directionProjectile = getDirectionAttaque(mX, mY);
-		//worldMap.createRamziProjectile(mX, mY);
 		worldMap.createRamziProjectile(directionProjectile);
 	}
 	
@@ -367,11 +367,25 @@ public class Ramzi{
 	public boolean isAlive(){
 		return alive;
 	}
+	
 	/**return le max hp de ramzi*/
 	public int getHp()
 	{
 		return this.maxHp;
 	}
+	
+	/**
+	 * Zone de collision de Ramzi
+	 */
+	public Rectangle calcZoneCollision()
+	{
+		zoneCollision = new Rectangle((int)this.x, (int)this.y, 32, 32);
+		zoneCollision.setCenterX(this.x);
+		zoneCollision.setCenterY(this.y);
+		
+		return zoneCollision;
+	}
+	
 	/**return les hp de ramzi après les dégats*/
 	public int getCurrentHp()
 	{
@@ -382,6 +396,7 @@ public class Ramzi{
 	{
 		return this.immuniteCooldown;
 	}
+	public void setMap(TiledMap map) {this.map =map;}
 	
 
 }

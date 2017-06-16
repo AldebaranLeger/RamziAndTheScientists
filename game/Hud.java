@@ -46,13 +46,18 @@ public class Hud {
 		//annule la caméra car le hud est fixe
 		g.resetTransform();
 		renderEnnemiBar(g);
-		if(this.currentBossHp!=0) {
+		if(this.currentBossHp>0 && this.currentBossHp!=0) {
 			renderLifeBossBar(g);
 			g.drawImage(this.bossBar, 180, 340);
 		}
 		renderLifePlayerBar(g);
 		drawHud(g);
 		//renderAtqBar(g);
+	}
+	
+	public void update(int delta)
+	{
+		this.maxEnnemis = worldMap.getEnnemisDebut();
 	}
   
 	private void playerManagement() throws SlickException{

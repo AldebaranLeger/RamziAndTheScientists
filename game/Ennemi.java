@@ -14,7 +14,7 @@ public abstract class Ennemi {
 	protected int direction;
 	protected boolean moving = false;
 	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleEnnemi = new Animation[3];
-	private TiledMap map;
+	protected TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
 	protected Graphics g;
@@ -213,7 +213,7 @@ public abstract class Ennemi {
 
 	}
 	
-	private float getDiffPosition(float playerPosition, float ennemiPosition)
+	protected float getDiffPosition(float playerPosition, float ennemiPosition)
 	{
 		if (playerPosition > ennemiPosition)
 		{
@@ -248,10 +248,6 @@ public abstract class Ennemi {
 		}
 		seDeplace(player.getX(), player.getY(), collision, vitesse);
 	}
-	
-	/*
-	 * Only used in suivrePLayer()
-	 * */
 	private void seDeplace(float playerX, float playerY, boolean collision, double vitesse)
 	{
 		float diffX = playerX - x;
