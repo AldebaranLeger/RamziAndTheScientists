@@ -13,10 +13,10 @@ public class Souris1 extends Ennemi{
 
 	private int maxDeplacement;
 	private int compteurPas = 0;
-	
-	public Souris1(TiledMap map, float x, float y)
+	 
+	public Souris1(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi)
 	{
-		super(map, x, y);
+		super(worldmap, map, player, x, y, idEnnemi);
 		super.ptVie = 2;
 		super.littleMouseDirection = (int) (Math.random()*(3-1)+1);
 		
@@ -28,11 +28,13 @@ public class Souris1 extends Ennemi{
 		animations = super.prepareAnimation("ramzi.png");
 		dyingSmoke = super.prepareSmokeAnimation();
 		littleMouse = super.prepareLittleMouseAnimation();
+		super.calcZoneCollision();
 	}
 	
 	public void update(int delta) throws SlickException
 	{		
 		this.changerDirection(delta);
+		super.canHitRamzi();
 		//super.calcHitBox();
 	}
 	
@@ -45,7 +47,11 @@ public class Souris1 extends Ennemi{
 		if(!super.isSaved()){
 			if(collision){
 				setRandomDirection();
-			} else {
+			} else if(super.isCollisionPersos())
+			{
+				super.knockBack(super.whereIsCollisionPerso);
+			}
+			else {
 				this.walk(futurX, futurY);
 			}
 		}

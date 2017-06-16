@@ -1,4 +1,3 @@
-import java.awt.Rectangle;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -6,7 +5,9 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Polygon;
+import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 
@@ -26,6 +27,9 @@ public class Ramzi{
 	private boolean isAtking = false;
 	private float mouseX, mouseY;
 	private int immuniteCooldown = 0;
+	private boolean collisionPerso;
+	private String whereIsCollisionPerso ="";
+	private Circle zoneCollision;
 	
 	private Polygon polygonTop, polygonRight, polygonBottom, polygonLeft;
 	
@@ -175,9 +179,7 @@ public class Ramzi{
 			boolean collision = isCollision(futurX, futurY);
 			
 			
-			if(collision) {
-				//this.stopMoving();
-			} else {
+			if(!collision) {
 				this.x = futurX;
 				this.y = futurY;
 			}
@@ -236,7 +238,7 @@ public class Ramzi{
 	private Rectangle createDamageArea()
 	{
 		directionAttaque = getDirectionAttaque(mouseX, mouseY);
-		Rectangle damageArea = new Rectangle();
+		Rectangle damageArea = new Rectangle(this.x, this.y, 80,80);
 		switch(this.directionAttaque)
 		{
 		case 0 :
@@ -258,7 +260,7 @@ public class Ramzi{
 		}
 		return damageArea;
 	}
-	
+
 	public void canHitEnnemis(Rectangle damageArea, int damage)
 	{
 		if(WorldMap.tabEnnemi!=null){
@@ -276,6 +278,10 @@ public class Ramzi{
 				if(damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY()))
 				{
 					WorldMap.madMouse.takeDamage(damage);
+				}
+				else if(damageArea.contains(WorldMap.bunNysterio.getX(), WorldMap.bunNysterio.getY()))
+				{
+					WorldMap.bunNysterio.takeDamage(damage);
 				}
 			}
 			catch(Exception e){}
@@ -320,13 +326,21 @@ public class Ramzi{
 	    }
 	    return collision;
 	  }
-	
+		
 	private float getFuturX(int delta) {
 			return this.x + .1f * delta * this.dx *2;
 		}
 
 	private float getFuturY(int delta) {
 		return this.y + .1f * delta * this.dy *2;
+	}
+	
+	public void gagnerVie(int nbPtsGagne)
+	{
+		if(this.hp + nbPtsGagne <= this.maxHp)
+		{
+			this.hp += nbPtsGagne;
+		} 	
 	}
 
 	public float getX() {return x;}
@@ -388,7 +402,12 @@ public class Ramzi{
 		return this.hp;
 	}
 	
-	
+	public Circle calcZoneCollision()
+	{
+		zoneCollision = new Circle(this.x-6, this.y-6, 12);
+		return zoneCollision;
+	}
+		
 	private void refreshImmunite(){
 		if(this.immuniteCooldown != 0){
 			this.immuniteCooldown++;

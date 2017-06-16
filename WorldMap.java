@@ -26,6 +26,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private Ramzi player;
 		private Camera camera;
 		public static Ennemi[] tabEnnemi = new Ennemi[100];
+		public static Adn[] coeurs = new Adn[25];
 		private int nbEnnemisSauves;
 		public static int nbEnnemisDebut;
 		private float xEnnemi, yEnnemi; //coordonnées de l'ennemi
@@ -34,6 +35,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private Hud hud;
 		private float xEnnemiSauve, yEnnemiSauve; //coordonnées de l'ennemi enregistrée lorsque ses points de contamination sont à zéro (ennemi sauvé)
 		public static MadMouse madMouse = null;
+		public static BunNysterio bunNysterio = null;
 		private ProjCheese tabCheese[] = new ProjCheese[10];
 		private boolean madMouseArrives=false;		
 		private int totalEnnemisSauves;
@@ -87,11 +89,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		renderRamzi(g);
 		renderBoss(g);
 		renderEnnemis(g);
+		renderHearts(g);
 		//camera.place(container, g);
 	//	g.resetTransform();
 		playerBulletRefresh(g);
 		bossBulletRefresh(g);		
-		renderMenu(g);		
+		renderMenu(g);
 	}
 	
 	private void renderRamzi(Graphics g) throws SlickException
@@ -131,11 +134,23 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 			camera.update(container);
 			playerBulletUpdate(delta);
-			bossBulletUpdate(delta);			
+			bossBulletUpdate(delta);	
+			updateHearts(delta);
 			container.resume(); //continue les updates dans le GameContainer
 			
 			if(!this.player.isAlive()){
 				gameOver=true;
+			}
+		}
+	}
+	
+	public void updateHearts(int delta) throws SlickException {
+		if(this.coeurs!=null){
+			for(int i = 0 ; i < coeurs.length; i ++ )
+			{
+				if(coeurs[i]!=null){
+					coeurs[i].update(delta);
+				}
 			}
 		}
 	}
@@ -148,7 +163,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		int tileH = map.getTileHeight();
 		int collisionLayer = this.map.getLayerIndex("collision");
 		int mapLayer = this.map.getLayerIndex("sol");
-		nbEnnemisDebut = 5;
+		nbEnnemisDebut = 1;
 		this.nbEnnemisSauves=0;
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
@@ -169,11 +184,11 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 				//si les coordonnées de l'ennemi font partie intégrante de la map, alors on le crée.
 				if(inMap)
 				{
-					int random = (int)(Math.random() * 2 +1);
-					if(random == 1)
-						tabEnnemi[i] = new Souris1(map,xEnnemi,yEnnemi);
+					int randomEnnemi = (int)(Math.random() * 2 +1);
+					if(randomEnnemi == 1)
+						tabEnnemi[i] = new Souris1(this, map,player,xEnnemi,yEnnemi, i);
 					else
-						tabEnnemi[i] = new Souris2(map,player,xEnnemi,yEnnemi);
+						tabEnnemi[i] = new Souris2(this, map,player,xEnnemi,yEnnemi, i);
 				}
 				// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
 				if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
@@ -221,6 +236,17 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 		}
 	}
+
+	public void renderHearts(Graphics g) throws SlickException {
+		if(this.coeurs!=null){
+			for(int i = 0 ; i < coeurs.length; i ++ )
+			{
+				if(coeurs[i]!=null){
+					coeurs[i].render(g);
+				}
+			}
+		}
+	}
 	
 	/**
 	 * affiche le boss du niveau quand le dernier ennemi est sauvé.
@@ -229,15 +255,17 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	public void renderBoss(Graphics g) throws SlickException {
 		if(madMouse!=null && !madMouseArrives){
 			madMouseArrives=true;
-			System.out.println("MadMouse apparait.");
 			madMouse.init();
+			bunNysterio.init();
 		}
 		if(madMouseArrives){
 			if(madMouse!=null){
 				if(!madMouse.isSaved()){
 					this.madMouse.render(container, stateBasedGame, g);
+					this.bunNysterio.render(container, stateBasedGame, g);
 				} else {
 					madMouse = null;
+					bunNysterio = null;
 				}
 			}
 		}
@@ -337,6 +365,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			if(nbEnnemisSauves==nbEnnemisDebut){
 				tabEnnemi=null;
 				madMouse = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
+				bunNysterio = new BunNysterio(map, player, xEnnemiSauve+60, yEnnemiSauve); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
 			}
 		}
 	}
@@ -350,6 +379,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		if(madMouse!=null){
 			if(!madMouse.isSaved()){
 				madMouse.update(container, stateBasedGame, delta);
+				bunNysterio.update(container, stateBasedGame, delta);
 			} else {
 				youWin = true;
 			}
@@ -439,7 +469,6 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		//System.out.println("WorldMap : " + madMouse.getX() + ", " + madMouse.getY());
 		tabCheese = new ProjCheese[10];
 		for(int i = 1; i<=nbCheese; i++){
-			System.out.println("WorldMap mm.getX() = "+mm.getX());
 			tabCheese[i]= new ProjCheese(this.player,mm);
 		}
 	}
@@ -448,14 +477,29 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	{
 		tabCheese[i] = null;
 	}
-//	public void bossAtk(int e){
-//		bossAtkState = e;
-//	}
+	
+	public void dropHeart(float xHeart, float yHeart) throws SlickException
+	{
+		for(int i=0 ; i < coeurs.length ; i++)
+		{
+			if(coeurs[i] == null)
+			{
+				coeurs[i] = new Adn(this, player, xHeart, yHeart, i);
+				coeurs[i].init();
+				break;
+			}
+		}
+	}
+	
+	public void destroyHeart(int i)
+	{
+		this.coeurs[i] = null;
+	}
+	
 	public int getEnnemis() { return this.nbEnnemisDebut;}
 	public int getNbEnnemisSauves() {return this.totalEnnemisSauves;}	
 	
 	public void componentActivated(AbstractComponent source) {
-		System.out.println(source);
 		if(source == resume) {
 			escapeMenu = false;
 		} else if(source == mainMenu) {

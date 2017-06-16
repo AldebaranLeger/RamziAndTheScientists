@@ -133,12 +133,17 @@ public class Bullet
 		for(int i = 0; i<WorldMap.nbEnnemisDebut;i++){
 			if(this.canTouchEnnemis(projectileArea, i))
 			{
-				if(WorldMap.tabEnnemi != null){
-					WorldMap.tabEnnemi[i].takeDamage(1);
-				} else if (WorldMap.madMouse != null){
-					WorldMap.madMouse.takeDamage(1);
+				if(this.active)
+				{
+					if(WorldMap.tabEnnemi != null){
+						WorldMap.tabEnnemi[i].takeDamage(1);
+					} else if (WorldMap.madMouse != null){
+						WorldMap.madMouse.takeDamage(1);
+					} else if (WorldMap.bunNysterio != null){
+						WorldMap.bunNysterio.takeDamage(1);
+					}
+					this.active = false;
 				}
-				this.active = false;
 			}
 		}
 	}
@@ -159,9 +164,25 @@ public class Bullet
 		} else {
 			try
 			{
-				if(damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY()))
+				if(damageArea.contains(WorldMap.madMouse.getX() + 10, WorldMap.madMouse.getY() -10) ||
+						damageArea.contains(WorldMap.madMouse.getX() - 10, WorldMap.madMouse.getY() -10) ||
+						damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY() -60) ||
+						damageArea.contains(WorldMap.madMouse.getX() - 10, WorldMap.madMouse.getY() -40) ||
+						damageArea.contains(WorldMap.madMouse.getX() + 10, WorldMap.madMouse.getY() -40) ||
+						damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY() -30) ||
+						damageArea.contains(WorldMap.madMouse.getX(), WorldMap.madMouse.getY() +5))
 				{
 					result = true;
+				}
+				else if(damageArea.contains(WorldMap.bunNysterio.getX() + 10, WorldMap.bunNysterio.getY() -10) ||
+						damageArea.contains(WorldMap.bunNysterio.getX() - 10, WorldMap.bunNysterio.getY() -10) ||
+						damageArea.contains(WorldMap.bunNysterio.getX(), WorldMap.bunNysterio.getY() -60) ||
+						damageArea.contains(WorldMap.bunNysterio.getX() - 10, WorldMap.bunNysterio.getY() -40) ||
+						damageArea.contains(WorldMap.bunNysterio.getX() + 10, WorldMap.bunNysterio.getY() -40) ||
+						damageArea.contains(WorldMap.bunNysterio.getX(), WorldMap.bunNysterio.getY() -30) ||
+						damageArea.contains(WorldMap.bunNysterio.getX(), WorldMap.bunNysterio.getY() +5))
+				{
+					
 				}
 			}
 			catch(Exception e){}

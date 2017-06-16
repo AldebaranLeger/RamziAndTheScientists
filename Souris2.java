@@ -5,12 +5,11 @@ import org.newdawn.slick.tiled.TiledMap;
 public class Souris2 extends Ennemi {
 
 	double vitesseDeplacement;
-	private Ramzi player;
 	
-	public Souris2(TiledMap map, Ramzi player, float x, float y) {
-		super(map, x, y);
-		this.player = player;
-		vitesseDeplacement = 2;
+	public Souris2(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
+		super(worldmap, map, player, x, y, idEnnemi);
+		super.player = player;
+		vitesseDeplacement = (int)(Math.random()*(4-2)+2);
 		super.ptVie = 4;
 		super.littleMouseDirection = (int) (Math.random()*(3-1)+1);
 	}
@@ -20,6 +19,7 @@ public class Souris2 extends Ennemi {
 		dyingSmoke = super.prepareSmokeAnimation();
 		littleMouse = super.prepareLittleMouseAnimation();
 		super.setRandomDirection();
+		super.calcZoneCollision();
 	}
 
 	public void update(int delta) throws SlickException
@@ -34,7 +34,8 @@ public class Souris2 extends Ennemi {
 		this.shouldMove(vueSouris);
 
 		this.shouldAvoidCollision(delta, futurX, futurY);
-		
+
+		super.canHitRamzi();
 		//super.calcHitBox();
 	}
 	
@@ -66,8 +67,6 @@ public class Souris2 extends Ennemi {
 		if (moving) {
 			if (!super.isCollision(futurX, futurY)) {
 				super.suivrePlayer(player, vitesseDeplacement, delta, false);
-				// this.x = futurX;
-				// this.y = futurY;
 			} else{
 				super.suivrePlayer(player, vitesseDeplacement, delta, true);
 			}
