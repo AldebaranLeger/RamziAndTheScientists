@@ -6,6 +6,8 @@ import org.newdawn.slick.SlickException;
 
 public class Controle implements KeyListener, MouseListener{
 	private Ramzi ramzi;
+	private int xKeyCounter = 0;
+	private int yKeyCounter = 0;
 	
 	public Controle(Ramzi player){
 		this.ramzi=player;
@@ -19,40 +21,109 @@ public class Controle implements KeyListener, MouseListener{
 		  switch (key) {
 		  case Input.KEY_Z:
 		    this.ramzi.setDy(-1);
+		    this.ramzi.furtherY(-1.05);
+		    this.yKeyCounter++;
 		    break;
 		  case Input.KEY_Q:
 		    this.ramzi.setDx(-1);
+		    this.ramzi.furtherX(-1.05);
+		    this.xKeyCounter++;
 		    break;
 		  case Input.KEY_S:
 		    this.ramzi.setDy(1);
+		    this.ramzi.furtherY(1.05);
+		    this.yKeyCounter++;
 		    break;
 		  case Input.KEY_D:
 		    this.ramzi.setDx(1);
+		    this.ramzi.furtherX(1.05);
+		    this.xKeyCounter++;
 		    break;
 		  case Input.KEY_UP:
 		    this.ramzi.setDy(-1);
+		    this.ramzi.furtherY(-1.05);
+		    this.yKeyCounter++;
 		    break;
 		  case Input.KEY_LEFT:
 		    this.ramzi.setDx(-1);
+		    this.ramzi.furtherX(-1.05);
+		    this.xKeyCounter++;
 		    break;
 		  case Input.KEY_DOWN:
-		    this.ramzi.setDy(1);
+			    this.ramzi.setDy(1);
+		    this.ramzi.furtherY(1.05);
+		    this.yKeyCounter++;
 		    break;
 		  case Input.KEY_RIGHT:
 		    this.ramzi.setDx(1);
+		    this.ramzi.furtherX(1.05);
+		    this.xKeyCounter++;
 		    break;
+		  case Input.KEY_SPACE:
+			  try {
+				this.ramzi.boutonEspacePressed();
+			  } catch (SlickException e) {}
+			  break;
 		  }
 	  }
 	  public void keyReleased(int key, char c) {
 		  switch (key) {
-			  case Input.KEY_Z: ramzi.setDy(0); break;
-			  case Input.KEY_S:  ramzi.setDy(0); break;
-			  case Input.KEY_Q: ramzi.setDx(0); break;
-			  case Input.KEY_D: ramzi.setDx(0); break;
-			  case Input.KEY_UP: ramzi.setDy(0); break;
-			  case Input.KEY_DOWN:  ramzi.setDy(0); break;
-			  case Input.KEY_LEFT: ramzi.setDx(0); break;
-			  case Input.KEY_RIGHT: ramzi.setDx(0); break;
+			  case Input.KEY_Z: 
+			    this.yKeyCounter--;
+				if(this.yKeyCounter==0){
+					  this.ramzi.stopFurtherY();
+						ramzi.setDy(0); 
+				}
+				  break;
+			  case Input.KEY_S:  
+				    this.yKeyCounter--;
+					if(this.yKeyCounter==0){
+						  this.ramzi.stopFurtherY();
+						  ramzi.setDy(0); 
+					}
+				  break;
+			  case Input.KEY_Q:
+				    this.xKeyCounter--;
+					if(this.xKeyCounter==0){
+						  this.ramzi.stopFurtherX();
+						  ramzi.setDx(0); 
+					}
+				  break;
+			  case Input.KEY_D:  
+				    this.xKeyCounter--;
+					if(this.xKeyCounter==0){
+						  this.ramzi.stopFurtherX();
+						  ramzi.setDx(0);
+					}
+				  break;
+			  case Input.KEY_UP: 
+				    this.yKeyCounter--;
+					if(this.yKeyCounter==0){
+						  this.ramzi.stopFurtherY();
+						  ramzi.setDy(0); 
+					}
+				  break;
+			  case Input.KEY_DOWN:  
+				    this.yKeyCounter--;
+					if(this.yKeyCounter==0){
+						  this.ramzi.stopFurtherY();
+						  ramzi.setDy(0); 
+					}
+				  break;
+			  case Input.KEY_LEFT: 
+				    this.xKeyCounter--;
+					if(this.xKeyCounter==0){
+						  this.ramzi.stopFurtherX();
+						  ramzi.setDx(0); 
+					}
+				  break;
+			  case Input.KEY_RIGHT: 
+				    this.xKeyCounter--;
+					if(this.xKeyCounter==0){
+						  this.ramzi.stopFurtherX();
+						  ramzi.setDx(0); 
+					}
+				  break;
 		  }
 	  }
 

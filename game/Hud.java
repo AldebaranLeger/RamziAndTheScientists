@@ -54,6 +54,11 @@ public class Hud {
 		drawHud(g);
 		//renderAtqBar(g);
 	}
+	
+	public void update(int delta)
+	{
+		this.maxEnnemis = worldMap.getEnnemisDebut();
+	}
   
 	private void playerManagement() throws SlickException{
 		this.playerMaxHp = player.getHp();
@@ -82,7 +87,7 @@ public class Hud {
 	private void renderEnnemiBar(Graphics g2) {
 		g2.setColor(CPT_ENNEMI_COLOR);
 		//jauge qui diminue à chaque ennemi sauvé
-		g2.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.worldMap.getEnnemisSauves()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
+		g2.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.worldMap.getEnnemisDebut()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
 	}
   
 	private void drawHud(Graphics g) {

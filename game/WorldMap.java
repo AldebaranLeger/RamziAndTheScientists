@@ -28,28 +28,26 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private TiledMap map1; //une map pour chaque niveau
 		private Ramzi player;
 		private Camera camera;
-		public static Ennemi[] tabEnnemi;
+		public static List<Ennemi> tabEnnemi;
+		public static Adn[] coeurs = new Adn[25];
 		private List<Bullet> bullet = new ArrayList<Bullet>();
 		public static float cursorX, cursorY;
 		public Hud hud;
 		//public static MadMouse madMouse = null;
-		private ProjCheese tabCheese[] = new ProjCheese[10];
 		//menu pause
 		private boolean escapeMenu;
 		private Image btnResume, btnExit, btnMainMenu, txtGameOver, txtYouWin;
 		private MouseOverArea resume, exit, mainMenu;		
 		//écran Game Over
 		private boolean gameOver = false; 
-		//écran Gagné !
-		private boolean youWin = false;		
-
+		private boolean finDePartie = false;
 		private int attaqueDistanceCooldown = -1;
 		
 		private Level currentLevel; 
 		
 		public WorldMap (int id) {
 			this.id = id;
-			WorldMap.tabEnnemi =  new Ennemi[100];
+			WorldMap.tabEnnemi =  new ArrayList<Ennemi>();
 		}
 		
 		/**
@@ -64,8 +62,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		player.init();
 		
 		this.currentLevel = new Level1(this, map1, player); //niveau 1 au démarrage du jeu (sauvegarde impossible)	
-		currentLevel.setTabEnnemi(tabEnnemi);
-		currentLevel.init(container, stateBasedGame);
+		initLevel();
 		
 		this.hud = new Hud(player);
 		this.hud.init(this);
@@ -78,6 +75,13 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		createMenu();
 	
 	}
+
+	public void initLevel() throws SlickException 
+	{
+		tabEnnemi = new ArrayList<Ennemi>();
+		this.currentLevel.setTabEnnemi(tabEnnemi);
+		this.currentLevel.init(container, stateBasedGame);
+	}
 	
 	/**
 	 * affiche le contenu du jeu
@@ -87,8 +91,8 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());//caméra suiveuse
 		this.currentLevel.render(container, stateBasedGame, g); //affiche map, ennemis et boss du niveau courant
 		playerBulletRefresh(g);
-		bossBulletRefresh(g);	
-		renderMenu(g);				
+		renderMenu(g);		
+		renderHearts(g);		
 	}
 	
 	/**
@@ -102,16 +106,28 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		} else
 		{
 			this.player.update(delta);
+			hud.update(delta);
 			currentLevel.setTabEnnemi(tabEnnemi);
 			this.currentLevel.update(container, stateBasedGame, delta);
 			tabEnnemi = currentLevel.getTabEnnemi();
 			camera.update(container);
-			playerBulletUpdate(delta);
-			bossBulletUpdate(delta);			
+			playerBulletUpdate(delta);		
+			updateHearts(delta);
 			container.resume(); //continue les updates dans le GameContainer
 			
 			if(!this.player.isAlive()){
 				gameOver=true;
+			}
+		}
+	}
+	
+	public void updateHearts(int delta) throws SlickException {
+		if(this.coeurs!=null){
+			for(int i = 0 ; i < coeurs.length; i ++ )
+			{
+				if(coeurs[i]!=null){
+					coeurs[i].update(delta);
+				}
 			}
 		}
 	}
@@ -150,20 +166,35 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 		}
 	}
-	
-	/**
-	 * Affiche les attaques à distance des boss
-	 * @param g
-	 * @throws SlickException 
-	 */
-	public void bossBulletRefresh(Graphics g) throws SlickException {
-		for(int i = 0 ; i < 10 ; i ++)
-		{
-			if(tabCheese[i]!=null)
+
+
+	public void renderHearts(Graphics g) throws SlickException {
+		if(this.coeurs!=null){
+			for(int i = 0 ; i < coeurs.length; i ++ )
 			{
-				tabCheese[i].render(container, g);
+				if(coeurs[i]!=null){
+					coeurs[i].render(g);
+				}
 			}
 		}
+	}
+	
+	public void dropHeart(float xHeart, float yHeart) throws SlickException
+	{
+		for(int i=0 ; i < coeurs.length ; i++)
+		{
+			if(coeurs[i] == null)
+			{
+				coeurs[i] = new Adn(this, player, xHeart, yHeart, i);
+				coeurs[i].init();
+				break;
+			}
+		}
+	}
+	
+	public void destroyHeart(int i)
+	{
+		this.coeurs[i] = null;
 	}
 	
 	/**
@@ -190,7 +221,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			mainMenu.setMouseOverColor(Color.orange);
 			exit.render(container, g);
 			exit.setMouseOverColor(Color.orange);
-		} else if(youWin == true){
+		} else if(this.finDePartie == true){
 			g.resetTransform();
 			g.fillRect(0, 0, container.getWidth() + 200, container.getHeight());
 			g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
@@ -223,16 +254,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 		}
 	}
-	
-	public void bossBulletUpdate(int delta) {
-		for(int i = 0 ; i < 10 ; i ++)
-		{
-			if(tabCheese[i]!=null)
-			{
-				tabCheese[i].update(delta, i);
-			}
-		}
-	}
+
 	
 	public void keyReleased(int key, char c) {
 		//à l'appui sur la touche ECHAP, on quitte le jeu
@@ -248,12 +270,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 
 	public int getID() { return id;}
 	
-	public void createRamziProjectile(int directionProjectile) throws SlickException
+	public void createRamziProjectile(int directionProjectile, double vitesseX, double vitesseY) throws SlickException
 	{
 
 		if(this.attaqueDistanceCooldown == -1){
 			if(this.bullet!= null){
-				this.bullet.add(new Bullet(this, map1, player,directionProjectile));
+				this.bullet.add(new Bullet(this, map1, player,directionProjectile, vitesseX, vitesseY));
 				this.bullet.get(this.bullet.size()-1).init();
 			}
 			this.attaqueDistanceCooldown = 0;
@@ -266,20 +288,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		//this.projectile = null;
 	}
 	
-	public void createMadMouseCheese(MadMouse mm, int delta, int nbCheese)
-	{
-		//System.out.println("WorldMap : " + madMouse.getX() + ", " + madMouse.getY());
-		tabCheese = new ProjCheese[10];
-		for(int i = 1; i<=nbCheese; i++){
-			System.out.println("WorldMap mm.getX() = "+mm.getX());
-			tabCheese[i]= new ProjCheese(this.player,mm);
-		}
-	}
 
-	public void destroyMadMouseCheese(int i)
-	{
-		tabCheese[i] = null;
-	}
 //	public void bossAtk(int e){
 //		bossAtkState = e;
 //	}
@@ -295,8 +304,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		}
 	}
 	
-	public void setYouWin(boolean bool) {this.youWin = bool;}
 	public int getEnnemisDebut() { return currentLevel.getNbEnnemisDebut();}
 	public int getEnnemisSauves() {return currentLevel.getNbEnnemisSauves();}
-	public MadMouse getBossLevel() {return currentLevel.getBoss();}	
+	public Boss getBossLevel() {return currentLevel.getBoss();}	
+	public void setFinDePartie(boolean b) {this.finDePartie = b;}	
+	
+	public void updateCurrentLevel(Level nextLevel) {
+		this.currentLevel = nextLevel;
+	}
 }
