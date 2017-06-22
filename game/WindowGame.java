@@ -12,13 +12,19 @@ public class WindowGame extends StateBasedGame {
 	public static final int WORLDMAP = 1; 
 	public static final int OPTIONS = 2;
 	private static AppGameContainer app;
+	private boolean difficulte;
+	private Options options;
+	private WorldMap worldMap;
 	
 	public WindowGame()
 	{
 		super("Ramzi & The Scientists");
 		this.addState(new Menu(STARTMENU));
-		this.addState(new WorldMap(WORLDMAP));
-		this.addState(new Options(OPTIONS));		
+		System.out.println(difficulte);
+		this.worldMap = new WorldMap(WORLDMAP);
+		this.addState(worldMap);
+		this.options = new Options(this, OPTIONS);
+		this.addState(options);		
 	}
 	
 	/**
@@ -29,7 +35,6 @@ public class WindowGame extends StateBasedGame {
 		this.getState(WORLDMAP).init(container, this);
 		//au lancement du jeu, on arrive sur le menu
 		this.enterState(STARTMENU);
-
 	}
 
 	 public static void main(String[] args) throws SlickException {
@@ -43,6 +48,9 @@ public class WindowGame extends StateBasedGame {
 		 }
 	 }
 
-	
+	public void setDifficulte(boolean difficulte) {
+		this.difficulte = difficulte;
+		worldMap.setDifficulte(difficulte);
+	}
 
 }

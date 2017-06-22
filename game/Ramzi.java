@@ -1,4 +1,5 @@
 package game;
+import java.awt.Rectangle;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -6,15 +7,21 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Polygon;
-import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
+
+import game.items.actionType.*;
+import game.items.allObjets.*;
+import game.items.allObjets.distance.*;
+import levels.Level;
+
 
 public class Ramzi{
 	
 	private float x = 560, y=180;
 	private float dx = 0, dy = 0;
-	private int direction, directionAttaque;
+	private int direction, directionAttaque=4;
 	private Animation[] animations = new Animation[8];
 	private Animation[] animationsAttaque = new Animation[6];
 	private TiledMap map;
@@ -26,7 +33,16 @@ public class Ramzi{
 	private boolean isAtking = false;
 	private float mouseX, mouseY;
 	private int immuniteCooldown = 0;
-	Rectangle zoneCollision;
+	private String whereIsCollisionPerso ="";
+	private Circle zoneCollision;
+	
+	private clickGauche currentClickGauche = null;
+	private clickDroit currentClickDroit = null;
+	private boutonEspace currentBoutonEspace = null;
+	
+	private boolean accelerateX = false, accelerateY = false;
+	private double vitesseX = 0, vitesseY = 0;
+	private double vitesseMultiplierX = 1, vitesseMultiplierY = 1;
 	
 	private Polygon polygonTop, polygonRight, polygonBottom, polygonLeft;
 	
@@ -34,11 +50,12 @@ public class Ramzi{
 	public Ramzi(TiledMap map, WorldMap worldMap) {
 		this.map = map;
 		Ramzi.worldMap = worldMap;
-		this.maxHp = 12;
+		this.maxHp = 25;
 		this.hp = this.maxHp;
 	}
 	
 	public Animation[] prepareAnimation() throws SlickException {
+
 		SpriteSheet spriteRamzi = new SpriteSheet("ressources/sprites/Sprites_Ramzi.png", 64, 64);
 		this.animations[0] = loadAnimation(spriteRamzi, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteRamzi, 0, 1, 1);
@@ -53,6 +70,7 @@ public class Ramzi{
 	}
 	
 	public Animation[] prepareAnimationAttaque() throws SlickException {
+
 		SpriteSheet spriteAttaque = new SpriteSheet("ressources/sprites/attaques/Ramzi/Ramzi_CAC_V2.png", 32, 32);
 		this.animationsAttaque[0] = loadAttaqueAnimation(spriteAttaque, 0, 6, 0);
 
@@ -122,11 +140,11 @@ public class Ramzi{
 		if(isAtking)
 		{
 			switch(this.directionAttaque) {
-				case 0 : g.drawAnimation(animationsAttaque[0], x - 16, y - 64); break; //atk top
-				case 1 : g.drawAnimation(animationsAttaque[0], x + 32, y - 16); break; //atk droite
-				case 2 : g.drawAnimation(animationsAttaque[0], x - 16 , y + 16); break; //atk bas
-				case 3 : g.drawAnimation(animationsAttaque[0], x - 64, y - 16); break; //atk gauche
-			}
+			case 0 : g.drawAnimation(animationsAttaque[0], x - 16, y - 64); break; //atk top
+			case 1 : g.drawAnimation(animationsAttaque[0], x + 32, y - 16); break; //atk droite
+			case 2 : g.drawAnimation(animationsAttaque[0], x - 16 , y + 16); break; //atk bas
+			case 3 : g.drawAnimation(animationsAttaque[0], x - 64, y - 16); break; //atk gauche
+		}
 		}
 	}
 	
@@ -135,6 +153,7 @@ public class Ramzi{
 		moveManagement(delta);
 		attaqueManagement();
 		refreshImmunite();
+		speedManagement();
 	}
 	
 	private void attaqueManagement()
@@ -159,20 +178,32 @@ public class Ramzi{
 			
 			//on cherche s'il y a une tuile collision à ces coordonnées
 			boolean collision = isCollision(futurX, futurY);
+		
 			
-			
-			if(collision) {
-				//this.stopMoving();
+			if(collision)
+		  	{
+				if(isCollision(futurX-10, this.y) || isCollision(futurX+10, this.y)){
+					if (isCollision(this.x, futurY-10) || isCollision(this.x, futurY+10)){
+						// Collision au prochain X et Y (diagonale)
+					} else {
+						// Collision en X
+						this.y = futurY;
+					}
+				} else if (isCollision(this.x, futurY-10) || isCollision(this.x, futurY+10)){
+					// Collision en Y
+					this.x = futurX;
+				}
 			} else {
-				this.x = futurX;
-				this.y = futurY;
+				if(this.accelerateX){
+					this.x = futurX;
+				}
+				if(this.accelerateY){
+					this.y = futurY;
+				}
 			}
 			
-			if (this.isMoving()) {
-			    // ajouter la mise de la direction ici
-			    updateDirection();
-			    // suite de la mise à jour cf leçon 10
-			  }
+		    // ajouter la mise de la direction ici
+		    updateDirection();
 		}
 	}
 	
@@ -185,8 +216,7 @@ public class Ramzi{
 		    direction = 3;
 		  } else { 
 		    direction = 0;
-		  }
-		
+		  }		
 	}
 
 	public void prepareAttaqueCAC(int mX, int mY)
@@ -202,7 +232,7 @@ public class Ramzi{
 		switch(atkToken)
 		{
 		case 0 : 
-			Rectangle damageArea = createDamageArea();			
+			Rectangle damageArea = createDamageArea();
 			canHitEnnemis(damageArea);			
 			atkToken=1;
 			break;
@@ -220,13 +250,12 @@ public class Ramzi{
 	private Rectangle createDamageArea()
 	{
 		directionAttaque = getDirectionAttaque(mouseX, mouseY);
-		Rectangle damageArea = new Rectangle(10,10,10,10);
+		Rectangle damageArea = new Rectangle();
 		switch(this.directionAttaque)
 		{
 		case 0 :
 			damageArea.setSize(80, 80);
 			damageArea.setLocation((int)this.x - 40,(int)this.y- 80);
-			
 			break;
 		case 1 :
 			damageArea.setSize(80, 80);
@@ -247,11 +276,11 @@ public class Ramzi{
 	private void canHitEnnemis(Rectangle damageArea)
 	{
 		if(WorldMap.tabEnnemi!=null){
-			for(int i = 0; i<worldMap.getEnnemisDebut();i++){
-				if(WorldMap.tabEnnemi[i]!=null){
-					if(damageArea.contains(WorldMap.tabEnnemi[i].getX(), WorldMap.tabEnnemi[i].getY()))
+			for(int i = 0; i< WorldMap.tabEnnemi.size(); i++){
+				if(WorldMap.tabEnnemi.get(i)!=null){
+					if(damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY()))
 					{
-						WorldMap.tabEnnemi[i].takeDamage(3);
+						WorldMap.tabEnnemi.get(i).takeDamage(3);
 					}
 				}
 			}
@@ -287,7 +316,9 @@ public class Ramzi{
 	public void attackADistance(int mX, int mY) throws SlickException
 	{
 		int directionProjectile = getDirectionAttaque(mX, mY);
-		worldMap.createRamziProjectile(directionProjectile);
+		if(this.currentClickDroit!=null){
+			this.currentClickDroit.effet(worldMap, directionProjectile, this.vitesseX, this.vitesseY);
+		}
 	}
 	
 	public boolean isCollision(float x, float y) {
@@ -304,11 +335,11 @@ public class Ramzi{
 	  }
 	
 	private float getFuturX(int delta) {
-			return this.x + .1f * delta * this.dx *2;
-		}
+		return (float) (this.x + .1f * delta * this.vitesseX *2);
+	}
 
 	private float getFuturY(int delta) {
-		return this.y + .1f * delta * this.dy *2;
+		return (float) (this.y + .1f * delta * this.vitesseY *2);
 	}
 
 	public float getX() {return x;}
@@ -317,6 +348,109 @@ public class Ramzi{
 	public void setY(float y) { this.y = y; }
 	public void setDx(float dx){ this.dx = dx; }
 	public void setDy(float dy){ this.dy = dy; }
+	
+	
+	public void furtherX(double xSpeed) {
+		this.vitesseMultiplierX = xSpeed;
+		this.vitesseX = this.vitesseMultiplierX < 0 ? -1 : 1;
+		this.accelerateX = true;		
+	}
+
+	// Démarre l'accélération de Y
+	public void furtherY(double ySpeed) {
+		this.vitesseMultiplierY = ySpeed;
+		this.vitesseY = this.vitesseMultiplierY < 0 ? -1 : 1;
+		this.accelerateY = true;
+	}
+
+	// Arrête l'accélération de X
+	public void stopFurtherX() {
+		this.vitesseMultiplierX = 1;
+		this.vitesseX = 0;
+		this.accelerateX = false;		
+	}
+
+	// Arrête l'accélération de Y	
+	public void stopFurtherY() {
+		this.vitesseMultiplierY = 1;
+		this.vitesseY = 0;
+		this.accelerateY = false;
+	}
+	
+	private void speedManagement(){
+
+		// Déplacement en diagonale
+		if(this.accelerateX&&this.accelerateY){
+			
+			// Gestion de X
+			if(this.vitesseX==1){
+				this.vitesseX *= this.vitesseMultiplierX;
+			}else if(this.vitesseX<0){
+				this.vitesseX = -(this.vitesseX) * this.vitesseMultiplierX;				
+			} else {
+				this.vitesseX *= this.vitesseMultiplierX;				
+			}
+			if(this.vitesseX >= 1.4){
+				this.vitesseX = 1.4;
+			} else if(this.vitesseX <= -1.4){
+				this.vitesseX = -1.4;
+			}
+			
+			// Gestion de Y
+			if(this.vitesseY==1){
+				this.vitesseY *= this.vitesseMultiplierY;		
+			}else if(this.vitesseY<0){
+				this.vitesseY = -(this.vitesseY) * this.vitesseMultiplierY;				
+			} else {
+				this.vitesseY *= this.vitesseMultiplierY;				
+			}
+			if(this.vitesseY >= 1.4){
+				this.vitesseY = 1.4;
+			} else if(this.vitesseY <= -1.4){
+				this.vitesseY = -1.4;
+			}
+			
+		}else if(this.accelerateX){
+			// Déplacement uniquement en X
+			if(this.vitesseX==1){
+				this.vitesseX *= this.vitesseMultiplierX;
+			} else {
+				if(this.vitesseX<0){
+					this.vitesseX = -(this.vitesseX) * this.vitesseMultiplierX;				
+				} else {
+					this.vitesseX *= this.vitesseMultiplierX;				
+				}
+				if(this.vitesseX >= 1.7){
+					this.vitesseX = 1.7;
+				} else if(this.vitesseX <= -1.7){
+					this.vitesseX = -1.7;
+				}
+			}
+		} else if(this.accelerateY){
+			// Déplacement uniquement en Y
+			if(this.vitesseY==1){
+				this.vitesseY *= this.vitesseMultiplierY;		
+			}else if(this.vitesseY<0){
+				this.vitesseY = -(this.vitesseY) * this.vitesseMultiplierY;				
+			} else {
+				this.vitesseY *= this.vitesseMultiplierY;				
+			}
+			if(this.vitesseY >= 1.7){
+				this.vitesseY = 1.7;
+			} else if(this.vitesseY <= -1.7){
+				this.vitesseY = -1.7;
+			}
+		}
+	}
+	
+	public double getVitesseX(){
+		return this.vitesseX;
+	}
+	
+	public double getVitesseY(){
+		return this.vitesseY;
+	}
+	
 	//public Point getCursor() {return cursor;}
 	public int getDirection() { return direction;}
 	public void setDirection(int direction) { 
@@ -333,7 +467,8 @@ public class Ramzi{
 		}
 	
 	public boolean isMoving() { 
-		return dx != 0 || dy != 0;
+//		return dx != 0 || dy != 0;
+		return this.vitesseX !=0 || this.vitesseY !=0;
 	}
 	
 	public void stopMoving(){
@@ -353,11 +488,55 @@ public class Ramzi{
 	{
 		if(this.immuniteCooldown==0){
 			this.immuniteCooldown = 1;
+			if(WorldMap.difficulte == true) {
+				dmg+=1;
+			}
 			this.hp -= dmg;
 			if(this.hp<=0){
 				this.dead();
 			}
 		}
+	}
+	
+	// Gestion des objets
+	
+	public clickDroit getCurrentClickDroit(){
+		return this.currentClickDroit;
+	}
+	public void setCurrentClickDroit(clickDroit item){
+		worldMap.prepareDescriptionItem(item.getDescription());
+		this.currentClickDroit = item;
+	}
+	
+	public clickGauche getCurrentClickGauche(){
+		return this.currentClickGauche;
+	}
+	public void setCurrentClickGauche(clickGauche item){
+		this.currentClickGauche = item;
+	}
+	
+	public boutonEspace getCurrentBoutonEspace(){
+		return this.currentBoutonEspace;
+	}
+	public void setCurrentBoutonEspace(boutonEspace item){
+		worldMap.prepareDescriptionItem(item.getDescription());
+		this.currentBoutonEspace = item;
+	}
+	
+	public void boutonEspacePressed() throws SlickException{
+		if(this.currentBoutonEspace!=null){
+			this.currentBoutonEspace.effet(worldMap, direction, vitesseX, vitesseY);
+		}
+	}
+	
+	// Fin de gestion des objets
+	
+	public void gagnerVie(int nbPtsGagne)
+	{
+		if(this.hp + nbPtsGagne <= this.maxHp)
+		{
+			this.hp += nbPtsGagne;
+		} 	
 	}
 	
 	public void dead(){
@@ -367,25 +546,11 @@ public class Ramzi{
 	public boolean isAlive(){
 		return alive;
 	}
-	
 	/**return le max hp de ramzi*/
 	public int getHp()
 	{
 		return this.maxHp;
 	}
-	
-	/**
-	 * Zone de collision de Ramzi
-	 */
-	public Rectangle calcZoneCollision()
-	{
-		zoneCollision = new Rectangle((int)this.x, (int)this.y, 32, 32);
-		zoneCollision.setCenterX(this.x);
-		zoneCollision.setCenterY(this.y);
-		
-		return zoneCollision;
-	}
-	
 	/**return les hp de ramzi après les dégats*/
 	public int getCurrentHp()
 	{
@@ -396,6 +561,11 @@ public class Ramzi{
 	{
 		return this.immuniteCooldown;
 	}
+	
+	public Circle calcZoneCollision(){
+		return new Circle(this.x - 6, this.y - 6, 12);
+	}
+
 	public void setMap(TiledMap map) {this.map =map;}
 	
 

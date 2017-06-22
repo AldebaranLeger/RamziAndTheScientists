@@ -9,29 +9,37 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.tiled.TiledMap;
 
-/**
- * Projectile du joueur Ramzi
- */
 public class Bullet 
 {
 	private TiledMap map;
 	private Ramzi player;
 	private WorldMap worldMap;
 	private float xProjectile, yProjectile;
+	
+	// Permettent de donner l'illusion que le projectile tombe
+	private float yProjectileRender;
+	private int falling = 0;
+	
 	private int directionProjectile;
 	private int lived = 0;
-	private boolean active = true;//le projectile est visible ou non
-	private static int maxLifetime = 1000;
+	private boolean active = true;
+	private static int maxLifetime = 500;
 	private Graphics projectile;
 	private Rectangle projectileArea;
 	private Animation[] animationsBullet = new Animation[1];
+	
+	
+	private double vitesseX = 0;
+	private double vitesseY = 0;
 
-	public Bullet(WorldMap worldMap, TiledMap map, Ramzi player, int directionProjectile)
+	public Bullet(WorldMap worldMap, TiledMap map, Ramzi player, int directionProjectile, double vitesseX, double vitesseY)
 	{
 		this.map = map;
 		this.worldMap = worldMap;
 		this.player = player;
 		this.directionProjectile = directionProjectile;
+		this.vitesseX = vitesseX;
+		this.vitesseY = vitesseY;
 
 		setInitCoordonneeProjectile();
 		try {
@@ -43,27 +51,24 @@ public class Bullet
 	
 	private void setInitCoordonneeProjectile()
 	{
-		this.xProjectile = player.getX();
-		this.yProjectile = player.getY();
 		switch(directionProjectile)
 		{
 		case 0 : 
-			this.xProjectile = player.getX()-16;
-			this.yProjectile = player.getY()-32;
+			this.xProjectile = player.getX();
+			this.yProjectile = player.getY() + 16;
 			break;
 		case 1 :
-			this.xProjectile = player.getX()+16;
-			this.yProjectile = player.getY()-16;
-			break;
-		case 2 : 
-			this.xProjectile = player.getX()-16;
+			this.xProjectile = player.getX() + 16;
 			this.yProjectile = player.getY();
 			break;
-		case 3 :
-			this.xProjectile = player.getX()-32;
-			this.yProjectile = player.getY()-16;
+		case 2 : 
+			this.xProjectile = player.getX();
+			this.yProjectile = player.getY() + 16;
 			break;
-			
+		case 3 :
+			this.xProjectile = player.getX() - 16;
+			this.yProjectile = player.getY();
+			break;			
 		}
 	}
 	
@@ -92,12 +97,7 @@ public class Bullet
 	{
 		if(active)
 		{
-			if(this.directionProjectile == 0 || this.directionProjectile == 2){
-				deplacerProjectileVerticalement();
-			}
-			if(this.directionProjectile == 1 || this.directionProjectile == 3){
-				deplacerProjectileHorizontalement();
-			}
+			deplacementManagement();
 			
 			touchEnnemis();
 			
@@ -138,7 +138,7 @@ public class Bullet
 			if(this.canTouchEnnemis(projectileArea, i))
 			{
 				if(WorldMap.tabEnnemi != null){
-					WorldMap.tabEnnemi[i].takeDamage(1);
+					WorldMap.tabEnnemi.get(i).takeDamage(1);
 				} else if (this.worldMap.getBossLevel() != null){
 					this.worldMap.getBossLevel().takeDamage(1);
 				}
@@ -151,12 +151,12 @@ public class Bullet
 	{
 		boolean result = false;
 		if(WorldMap.tabEnnemi!=null){
-				if(WorldMap.tabEnnemi[i]!=null){
-					if(damageArea.contains(WorldMap.tabEnnemi[i].getX() +10, WorldMap.tabEnnemi[i].getY() -10) ||
-					   damageArea.contains(WorldMap.tabEnnemi[i].getX() -10, WorldMap.tabEnnemi[i].getY() -10) ||
-					   damageArea.contains(WorldMap.tabEnnemi[i].getX(), WorldMap.tabEnnemi[i].getY() -30) ||
-					   damageArea.contains(WorldMap.tabEnnemi[i].getX(), WorldMap.tabEnnemi[i].getY() +5)){
-						
+				if(WorldMap.tabEnnemi.get(i)!=null){
+					if(damageArea.contains(WorldMap.tabEnnemi.get(i).getX() +10, WorldMap.tabEnnemi.get(i).getY() -10) ||
+					   damageArea.contains(WorldMap.tabEnnemi.get(i).getX() -10, WorldMap.tabEnnemi.get(i).getY() -10) ||
+					   damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY() -30) ||
+					   damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY() +5))
+					{
 						result = true;
 					}
 				}
@@ -171,6 +171,19 @@ public class Bullet
 			catch(Exception e){}
 		}
 		return result;
+	}
+	
+	private void deplacementManagement(){
+		
+		if(this.directionProjectile == 0 || this.directionProjectile == 2){
+			deplacerProjectileVerticalement();
+		}
+		if(this.directionProjectile == 1 || this.directionProjectile == 3){
+			deplacerProjectileHorizontalement();
+		}		
+		xProjectile += this.vitesseX*6;
+		yProjectile += this.vitesseY*6;
+		
 	}
 	
 	private void deplacerProjectileHorizontalement()
@@ -203,11 +216,16 @@ public class Bullet
 			
 			Graphics ombre = new Graphics();
 			ombre.setColor(new Color(0,0,0, 0.5f));
-			ombre.fillOval(xProjectile+12, yProjectile+16, 20, 20); //création d'une ombre
+			ombre.fillOval(xProjectile-12, yProjectile-16, 20, 20); //création d'une ombre
 			
-			g.drawAnimation(animationsBullet[0], xProjectile, yProjectile);
-			
-			this.projectile = g;
+			this.yProjectileRender = this.yProjectile;
+			if(this.lived >= 350){
+				this.falling+=2;
+				g.drawAnimation(animationsBullet[0], xProjectile-16, yProjectileRender+this.falling-16);
+			} else {
+				g.drawAnimation(animationsBullet[0], xProjectile-16, yProjectile-16);
+			}
+			projectile = g;
 			
 			/*
 			projectile.setColor(Color.red);

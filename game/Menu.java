@@ -19,18 +19,19 @@ public class Menu extends BasicGameState implements ComponentListener {
 	//bouton Play et Exit
 	private MouseOverArea play, options, exit;
 	private int id;
-	private WorldMap worldMap;
+	private WorldMap game;
 	private int newGame = 0;
 	
 	public Menu(int id) {
 		this.id = id;
-		this.worldMap=null;
+		this.game=null;
 	}
 
 	public void init(GameContainer gc, StateBasedGame stateBasedGame) throws SlickException {
 		this.stateBasedGame = stateBasedGame;
 		this.container = gc;
 		background = new Image("ressources/background/Background_menu.png");
+		System.out.println(background.getHeight());
 		btnPlay = new Image("ressources/boutons/Bouton_Jouer.png");
 		btnOptions = new Image("ressources/boutons/Bouton_Option.png");
 		btnExit = new Image("ressources/boutons/Bouton_Quitter.png");
@@ -70,8 +71,8 @@ public class Menu extends BasicGameState implements ComponentListener {
 	
 	public void componentActivated(AbstractComponent source) {
 		if(source == play) {
-			worldMap = null;
-			worldMap = new WorldMap(WindowGame.WORLDMAP);
+			game = null;
+			game = new WorldMap(WindowGame.WORLDMAP);
 			try {
 				newGame = 1;
 				update(container, stateBasedGame, 1);

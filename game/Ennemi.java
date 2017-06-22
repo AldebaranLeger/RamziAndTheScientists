@@ -5,16 +5,20 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public abstract class Ennemi {
 
+	private WorldMap worldMap;
+	protected Ramzi player;
+	protected int idEnnemi;
 	protected float x, y;
 	protected int direction;
 	protected boolean moving = false;
 	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleEnnemi = new Animation[3];
-	protected TiledMap map;
+	private TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
 	protected Graphics g;
@@ -25,11 +29,16 @@ public abstract class Ennemi {
 	protected int ennemiDirection;
 	private boolean ennemiRunning = false;
 	private float ennemiX, ennemiY; 
+	protected boolean collisionPerso = false;
+	protected String whereIsCollisionPerso = "";
 
-	public Ennemi(TiledMap map, float x, float y) {
+	public Ennemi(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
+		this.worldMap = worldmap;
 		this.map = map;
+		this.player = player;
 		this.x = x;
 		this.y = y;
+		this.idEnnemi = idEnnemi;
 	}
 	
 	public void init() throws SlickException
@@ -40,18 +49,19 @@ public abstract class Ennemi {
 	
 	public Animation[] prepareAnimation(String srcSprite) throws SlickException {
 
-		SpriteSheet spriteEnnemis = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
-		this.animations[0] = loadAnimation(spriteEnnemis, 0, 1, 0);
-		this.animations[1] = loadAnimation(spriteEnnemis, 0, 1, 1);
-		this.animations[2] = loadAnimation(spriteEnnemis, 0, 1, 2);
-		this.animations[3] = loadAnimation(spriteEnnemis, 0, 1, 3);
-		this.animations[4] = loadAnimation(spriteEnnemis, 1, 9, 0);
-		this.animations[5] = loadAnimation(spriteEnnemis, 1, 9, 1);
-		this.animations[6] = loadAnimation(spriteEnnemis, 1, 9, 2);
-		this.animations[7] = loadAnimation(spriteEnnemis, 1, 9, 3);
+		SpriteSheet spriteSouris = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
+		this.animations[0] = loadAnimation(spriteSouris, 0, 1, 0);
+		this.animations[1] = loadAnimation(spriteSouris, 0, 1, 1);
+		this.animations[2] = loadAnimation(spriteSouris, 0, 1, 2);
+		this.animations[3] = loadAnimation(spriteSouris, 0, 1, 3);
+		this.animations[4] = loadAnimation(spriteSouris, 1, 9, 0);
+		this.animations[5] = loadAnimation(spriteSouris, 1, 9, 1);
+		this.animations[6] = loadAnimation(spriteSouris, 1, 9, 2);
+		this.animations[7] = loadAnimation(spriteSouris, 1, 9, 3);
 
 		return animations;
 	}	
+
 	public Animation[] prepareAnimationRabbit(String srcSprite) throws SlickException {
 		SpriteSheet spriteEnnemis = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
 		this.animations[0] = loadAnimation(spriteEnnemis, 0, 1, 3);
@@ -71,7 +81,6 @@ public abstract class Ennemi {
 		return dyingSmoke;
 	}
 	
-	/*prepare l'animation des ennemis à l'état de sauvé*/
 	public Animation[] prepareLittleEnnemiAnimation(String srcSprite) throws SlickException {
 		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/" + srcSprite, 64, 64);
 		this.littleEnnemi[1] = loadAnimation(spriteLittle, 0, 3, 0);
@@ -92,6 +101,7 @@ public abstract class Ennemi {
 
 		this.hitbox = new Rectangle(this.x - 16, this.y - 16, 32, 32);
 		
+
 		if(!isSaved()) {
 			createShadow(g);
 		}else {
@@ -171,7 +181,53 @@ public abstract class Ennemi {
 			return true;
 		}
 	}
+	
+	public boolean isCollisionPersos()
+	{
+		collisionPerso = false;
+		for(int i = 0 ; i < WorldMap.tabEnnemi.size() ; i++){
+			if(WorldMap.tabEnnemi.get(i)!=null)
+			{
+				if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinX() +3,
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinY() +3 ) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMinX()+3,
+							this.player.calcZoneCollision().getMinY()+3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "topleft";
+				} else if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxX() -3,
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinY()+3) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMaxX()-3,
+								this.player.calcZoneCollision().getMinY()+3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "topright";
+				} else if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinX()+3, 
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxY()-3) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMinX()+3,
+								this.player.calcZoneCollision().getMaxY()-3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "botleft";
+				} else if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxX()-3, 
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxY()-3) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMaxX()-3,
+								this.player.calcZoneCollision().getMaxY()-3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "botright";
+				}
+			}
+		}
+		return collisionPerso;
+	}
+	
+	public Circle calcZoneCollision()
+	{
+		return new Circle(this.x-6, this.y-6, 12);
 
+	}
+	
 	protected float getFuturX(int delta, double vitesse)
 	{
 
@@ -248,6 +304,10 @@ public abstract class Ennemi {
 		}
 		seDeplace(player.getX(), player.getY(), collision, vitesse);
 	}
+	
+	/*
+	 * Only used in suivrePLayer()
+	 * */
 	private void seDeplace(float playerX, float playerY, boolean collision, double vitesse)
 	{
 		float diffX = playerX - x;
@@ -276,6 +336,39 @@ public abstract class Ennemi {
 		}
 	}
 
+	protected void knockBack(String whichCollision)
+	{
+  		switch(whereIsCollisionPerso) {
+  		case "topleft" :
+  			x -= 2;
+  			y -= 2;
+  			break;
+  		case "topright" :
+  			x += 2;
+  			y -= 2;
+  			break;
+  		case "botleft" :
+  			x -= 2;
+  			y += 2;
+  			break;
+  		case "botright" :
+  			x += 2;
+  			y += 2;
+  			break;
+  		}
+	}
+	
+	protected void canHitRamzi()
+	{
+		if(living)
+		{
+		  	if(this.calcZoneCollision().intersects(this.player.calcZoneCollision()))
+		  	{
+		  		this.player.takeDamage(2);
+		  	}
+		}
+	}
+	
 	public float getX() {
 		return x;
 	}
@@ -312,13 +405,18 @@ public abstract class Ennemi {
 		this.moving = moving;
 	}
 	
-	public void takeDamage(int dmg) {
+	public void takeDamage(int dmg){
 		this.ptVie-=dmg;
 		if(this.ptVie<=0)
 			this.death();
 	}
 	
 	private void death(){
+		if((int)(Math.random()*8+1) == 1){
+			try {
+				worldMap.dropHeart(this.x, this.y);
+			} catch (SlickException e) {}
+		}
 		living=false;
 	}
 	

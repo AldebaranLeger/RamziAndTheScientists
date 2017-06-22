@@ -1,5 +1,4 @@
 package game;
-import levels.level1.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -29,7 +28,7 @@ public class Hud {
 	private Ramzi player;
 	private int playerMaxHp, bossMaxHp, currentBossHp;
 	private WorldMap worldMap;
-	private int maxEnnemis;
+	private int maxEnnemis, nbEnnemisSauves;
 		
 	public Hud(Ramzi player){
 		this.player = player;
@@ -46,7 +45,7 @@ public class Hud {
 		//annule la caméra car le hud est fixe
 		g.resetTransform();
 		renderEnnemiBar(g);
-		if(this.currentBossHp>0 && this.currentBossHp!=0) {
+		if(this.currentBossHp != 0 && this.currentBossHp > 0) {
 			renderLifeBossBar(g);
 			g.drawImage(this.bossBar, 180, 340);
 		}
@@ -58,6 +57,7 @@ public class Hud {
 	public void update(int delta)
 	{
 		this.maxEnnemis = worldMap.getEnnemisDebut();
+		this.nbEnnemisSauves = worldMap.getEnnemisSauves();
 	}
   
 	private void playerManagement() throws SlickException{
@@ -84,10 +84,10 @@ public class Hud {
 		g.fillRect(BAR_X, ATQ_BAR_Y, .8f * BAR_WIDTH, BAR_HEIGHT);
 	}	*/
   
-	private void renderEnnemiBar(Graphics g2) {
-		g2.setColor(CPT_ENNEMI_COLOR);
+	private void renderEnnemiBar(Graphics g) {
+		g.setColor(CPT_ENNEMI_COLOR);
 		//jauge qui diminue à chaque ennemi sauvé
-		g2.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.worldMap.getEnnemisSauves()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
+		g.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, ((float)this.maxEnnemis - (float)this.nbEnnemisSauves) * BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
 	}
   
 	private void drawHud(Graphics g) {
