@@ -21,6 +21,9 @@ public class Boss
 	protected int nbColonne = 9;
 	protected boolean living = true;
 	protected String srcSpriteBoss;
+	protected String nomBoss;
+	private double xCollisionToken, yCollisionToken;
+	protected boolean enrage = false;
 	
 	/*  Collision  */
 	protected boolean collisionPerso = false;	
@@ -72,7 +75,7 @@ public class Boss
 		try{
 		  	if(this.calcZoneCollision().intersects(this.player.calcZoneCollision()))
 		  	{
-		  		this.player.takeDamage(2);
+		  		this.player.takeDamage(3);
 		  	}
 		} catch (NullPointerException e){
 			System.out.println(this.player.calcZoneCollision());
@@ -164,6 +167,30 @@ public class Boss
 		}
 	}
 	
+	protected int setDirectionSuivrePlayer()
+	{
+		float diffX, diffY;
+		int newDirection = 0;
+		diffX = getDiffPosition(player.getX(), this.x);
+		diffY = getDiffPosition(player.getY(), this.y);
+		if (diffX > diffY) {
+			if (player.getX() > this.x){
+				newDirection =  3;
+			}
+			if (player.getX() < this.x){
+				newDirection =  1;
+			}
+		} else {
+			if (player.getY() > this.y){
+				newDirection =  2;
+			}
+			if (player.getY() < this.y){
+				newDirection =  0;
+			}
+		}
+		return newDirection;
+	}
+	
 	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {
 		float diffX, diffY;
 
@@ -185,40 +212,49 @@ public class Boss
 				setDirection(0);
 			}
 		}
-		seDeplace(player.getX(), player.getY(), collision, vitesse);
+		seDeplace(player.getX(), player.getY(), collision, vitesse, delta);
 	}
 
 	/*
 	 * Only used in suivrePLayer()
 	 * */
-	private void seDeplace(float playerX, float playerY, boolean collision, double vitesse)
+	private void seDeplace(float playerX, float playerY, boolean collision, double vitesse, int delta)
 	{
 		float diffX = playerX - x;
 		float diffY = playerY - y;
 		float angle = (float) Math.atan2(diffY, diffX);
 		
+		
 	  	if(collision)
 	  	{
+	  		xCollisionToken = Math.cos(angle) * vitesse;
+	  		yCollisionToken = Math.sin(angle) * vitesse;
 	  		if(isCollision(this.x,this.y-2)){
-	  			y+=2;
+	  			yCollisionToken = 5;
 	  		}
 	  		if(isCollision(this.x,this.y+2)){
-	  			y-=2;
+	  			yCollisionToken = -5;
 	  		}
 	  		if(isCollision(this.x+2,this.y)){
-	  			x-=2;
+	  			xCollisionToken = -5;
 	  		}
 	  		if(isCollision(this.x-2,this.y)){
-	  			x+=2;
+	  			xCollisionToken = 5;
 	  		}
+	  		x += xCollisionToken;
+	  		y += yCollisionToken;
 
 	  	}else if (isCollisionPersos()){
 	  		knockBack(whereIsCollisionPerso);
 	  		
 	  	} else {
-	 
-			x += Math.cos(angle) * vitesse;
-			y += Math.sin(angle) * vitesse;
+	  		if(this.enrage){
+				x += (Math.cos(angle) * vitesse)*3;
+				y += (Math.sin(angle) * vitesse)*3;
+	  		} else {
+				x += Math.cos(angle) * vitesse;
+				y += Math.sin(angle) * vitesse;
+	  		}
 		}
 	}	
 	
@@ -288,5 +324,10 @@ public class Boss
 		
 	public int getMaxPv(){
 		return this.maxPv;
+	}
+	
+	public String getBossName()
+	{
+		return nomBoss;
 	}
 }

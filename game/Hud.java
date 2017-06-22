@@ -25,11 +25,11 @@ public class Hud {
 	private static final Color CPT_ENNEMI_COLOR = new Color(31, 31, 109);
 	private static final int BAR_WIDTH = 175;
 	private static final int BAR_HEIGHT = 31;
-	private Image playerBars, playerItems, bossBar;
+	private Image playerBars, playerItems, bossBar, bossBar2;
 	private Ramzi player;
 	private int playerMaxHp, bossMaxHp, currentBossHp;
 	private WorldMap worldMap;
-	private int maxEnnemis;
+	private int maxEnnemis, nbEnnemisSauves;
 		
 	public Hud(Ramzi player){
 		this.player = player;
@@ -42,13 +42,23 @@ public class Hud {
 		playerManagement();
 	} 
 	  
-	public void render(Graphics g) {
+	public void render(Graphics g) throws SlickException {
 		//annule la caméra car le hud est fixe
 		g.resetTransform();
-		renderEnnemiBar(g);
-		if(this.currentBossHp!=0) {
-			renderLifeBossBar(g);
-			g.drawImage(this.bossBar, 180, 340);
+		if(worldMap.getBossLevel() == null){
+			renderEnnemiBar(g);
+		}
+		if(this.currentBossHp!=0 && this.currentBossHp > 0) {
+			if(worldMap.getBossLevel() != null){
+				renderLifeBossBar(g);
+			}
+			if(worldMap.getBossLevel() != null){
+				if(worldMap.getBossLevel().getBossName().equals("MadMouse")){
+					g.drawImage(this.bossBar, 180, 340);
+				}else if(worldMap.getBossLevel().getBossName().equals("BunNysterio")){
+					g.drawImage(this.bossBar2, 180, 340);
+				}
+			}
 		}
 		renderLifePlayerBar(g);
 		drawHud(g);
@@ -58,13 +68,15 @@ public class Hud {
 	public void update(int delta)
 	{
 		this.maxEnnemis = worldMap.getEnnemisDebut();
+		this.nbEnnemisSauves = worldMap.getEnnemisSauves();
 	}
   
 	private void playerManagement() throws SlickException{
 		this.playerMaxHp = player.getHp();
 		this.playerBars = new Image("ressources/hud/hud_2.png");
-		this.playerItems = new Image("ressources/hud/hud.png");
+		this.playerItems = new Image("ressources/hud/HUD_Items.png");
 		this.bossBar = new Image("ressources/hud/Lifebar_Boss_V2.png");
+		this.bossBar2 = new Image("ressources/hud/Lifebar_Boss_BunnySterio.png");
 	}
 	
 	private void renderLifeBossBar(Graphics g) {
@@ -84,18 +96,36 @@ public class Hud {
 		g.fillRect(BAR_X, ATQ_BAR_Y, .8f * BAR_WIDTH, BAR_HEIGHT);
 	}	*/
   
-	private void renderEnnemiBar(Graphics g2) {
-		g2.setColor(CPT_ENNEMI_COLOR);
+	private void renderEnnemiBar(Graphics g) {
+		g.setColor(CPT_ENNEMI_COLOR);
 		//jauge qui diminue à chaque ennemi sauvé
-		g2.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.worldMap.getEnnemisDebut()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
+		g.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, ((float)this.maxEnnemis - (float)this.nbEnnemisSauves) * BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
 	}
   
-	private void drawHud(Graphics g) {
+	private void drawHud(Graphics g) throws SlickException {
 		g.drawImage(this.playerBars, P_BAR_X, P_BAR_Y); //dessine les jauges
 		g.drawImage(this.playerItems, I_BAR_X, I_BAR_Y); //dessine le bloc des items
+		this.itemsManagement(g);
 		g.setColor(Color.white);
 		g.drawString("ClicL", I_BAR_X+5, I_BAR_Y +45 );
 		g.drawString("ClicR", I_BAR_X + 60, I_BAR_Y + 45);
+	}
+	
+	private void itemsManagement(Graphics g) throws SlickException{
+		if(this.player.getCurrentClickGauche()!=null){
+			g.drawImage(new Image("ressources/items/"+this.player.getCurrentClickGauche().getSrc()), I_BAR_X, I_BAR_Y);
+		}
+		if(this.player.getCurrentClickDroit()!=null){
+			g.drawImage(new Image("ressources/items/"+this.player.getCurrentClickDroit().getSrc()), I_BAR_X+63, I_BAR_Y+8);
+		}
+		if(this.player.getCurrentBoutonEspace()!=null){
+			g.drawImage(new Image("ressources/items/"+this.player.getCurrentBoutonEspace().getSrc()), I_BAR_X+108, I_BAR_Y+8);
+			if(this.player.getCurrentBoutonEspace().getCurrentCooldown()!=this.player.getCurrentBoutonEspace().getCooldown()+1){
+				g.setColor(new Color(68,68,68,0.5f));
+				g.fillRect( I_BAR_X+108, I_BAR_Y+40, 32, 
+						-((float)this.player.getCurrentBoutonEspace().getCurrentCooldown()*32 / (float)this.player.getCurrentBoutonEspace().getCooldown()));
+			}
+		}
 	}
 	
 	public void updateBossHp(int hp){

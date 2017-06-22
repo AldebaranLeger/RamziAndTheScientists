@@ -35,6 +35,7 @@ public class Lapin2 extends Ennemi {
 	public void update(int delta) throws SlickException
 	{		
 		realiserAction(delta);
+		super.canHitRamzi();
 	}
 	
 	private void realiserAction(int delta) throws SlickException 

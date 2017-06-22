@@ -14,4 +14,10 @@ public abstract class clickDroit implements Objet {
 	public String getType(){
 		return this.props.type;
 	}
+	public String getName(){
+		return this.props.name;
+	}
+	public String getDescription() {
+		return this.props.description;
+	}
 }

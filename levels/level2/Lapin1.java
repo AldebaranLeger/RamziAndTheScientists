@@ -35,6 +35,7 @@ public class Lapin1 extends Ennemi {
 		this.accelerer();
 		this.shouldMove(vueSouris);
 		this.shouldAvoidCollision(delta, futurX, futurY);
+		super.canHitRamzi();
 	}
 	
 	/*le lapin accélère en suivant Ramzi*/

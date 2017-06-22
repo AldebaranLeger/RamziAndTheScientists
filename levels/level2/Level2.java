@@ -17,15 +17,20 @@ import levels.Level;
 import levels.level1.MadMouse;
 
 public class Level2 extends Level{
-	private MadMouse bunNysterio; //changer classe MadMouse par celle de Bun Nysterious
+	private BunNysterio bunNysterio; //changer classe MadMouse par celle de Bun Nysterious
 	private List<BulletEnnemi> bulletEnnemi = new ArrayList<BulletEnnemi>();
 	
 	public Level2(WorldMap worldMap, TiledMap map, Ramzi player) throws SlickException {
 		super(worldMap, map, player);
-		super.nbEnnemisDebut = 4;
+		if(WorldMap.difficulte == true) {
+			super.maxEnnemisDebut = 40;
+		} else {
+			super.maxEnnemisDebut = 20;
+		}
 	}
 	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException {
+		nbEnnemisDebut = super.maxEnnemisDebut;
 		addEnnemis();
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
@@ -37,6 +42,7 @@ public class Level2 extends Level{
 		map.render(0,0,0);
 		map.render(0,0,1);
 		renderRamzi(g);
+		renderAdn(g);
 		//affiche les ennemis dans la map
 		if(tabEnnemi!=null) {
 			for(int i = 0 ; i < nbEnnemisDebut; i ++ )
@@ -52,7 +58,18 @@ public class Level2 extends Level{
 		renderBoss(container, stateBasedGame, g);
 	}
 	
+	private void renderAdn(Graphics g) throws SlickException
+	{
+		for(int i = 0 ; i < adn.size(); i ++ )
+		{
+			if(adn.get(i)!=null){
+				adn.get(i).render(g);
+			}
+		}
+	}
+	
 	public void update(GameContainer container, StateBasedGame stateBasedGame, int delta) throws SlickException {
+		updateAdn(delta);
 		if((tabEnnemi!=null)){
 			nbEnnemisSauves = 0;
 			//Met à jour l'état des ennemis (nombre, apparition du boss) 
@@ -73,9 +90,9 @@ public class Level2 extends Level{
 				else {
 					nbEnnemisSauves++;
 				}
-				if(tabEnnemi.size()==0){
+				if(nbEnnemisDebut==0){
 					tabEnnemi=null;
-			//		bunNysterio = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve, this); //le boss bunnySterious apparaît aux coordonnées du dernier ennemi sauvé
+					bunNysterio = new BunNysterio(map, player, xEnnemiSauve, yEnnemiSauve); //le boss bunnySterious apparaît aux coordonnées du dernier ennemi sauvé
 				}
 			}
 			for(int j=0; j<this.bulletEnnemi.size(); j++)
@@ -101,6 +118,16 @@ public class Level2 extends Level{
 				}				
 			}			
 		}		
+	}
+	
+	private void updateAdn(int delta) throws SlickException
+	{
+		for(int i = 0 ; i < adn.size(); i ++ )
+		{
+			if(adn.get(i)!=null){
+				adn.get(i).update(delta, i);
+			}
+		}
 	}
 	
 	private void renderRamzi(Graphics g) throws SlickException {
@@ -200,5 +227,5 @@ public class Level2 extends Level{
 		}		
 	}
 	
-	public MadMouse getBoss() {return this.bunNysterio;}
+	public BunNysterio getBoss() {return this.bunNysterio;}
 }

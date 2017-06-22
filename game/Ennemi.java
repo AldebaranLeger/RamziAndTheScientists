@@ -78,6 +78,7 @@ public abstract class Ennemi {
 	public Animation[] prepareSmokeAnimation() throws SlickException {
 		SpriteSheet spriteSmoke = new SpriteSheet("ressources/sprites/Effets/Disparition_Ennemis.png", 98, 128);
 		this.dyingSmoke[0] = loadAnimation(spriteSmoke, 0, 12, 0);
+		this.dyingSmoke[0].setLooping(false);
 		return dyingSmoke;
 	}
 	
@@ -329,6 +330,8 @@ public abstract class Ennemi {
 	  			x+=2;
 	  		}
 
+	  	} else if(isCollisionPersos()){
+	  		knockBack(whereIsCollisionPerso);
 	  	} else {
 	 
 			x += Math.cos(angle) * vitesse;
@@ -412,9 +415,9 @@ public abstract class Ennemi {
 	}
 	
 	private void death(){
-		if((int)(Math.random()*8+1) == 1){
+		if((int)(Math.random()*1+1) == 1){
 			try {
-				worldMap.dropHeart(this.x, this.y);
+				worldMap.prepareDropHeart(this.x, this.y);
 			} catch (SlickException e) {}
 		}
 		living=false;

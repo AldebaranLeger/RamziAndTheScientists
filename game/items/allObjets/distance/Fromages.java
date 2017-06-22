@@ -15,6 +15,7 @@ public class Fromages extends clickDroit {
 		super.props.name = "fromages";
 		super.props.damage = 2;
 		super.props.src = "carte_fromage.png";
+		super.props.description = "Utilise le clic droit de ta souris pour lancer des fromages ! \nMaintenant diriges toi vers l’ échelle et poursuis ta quête !";
 	}
 	
 	public void effet(WorldMap worldMap, int direction, double vitesseX, double vitesseY) throws SlickException{

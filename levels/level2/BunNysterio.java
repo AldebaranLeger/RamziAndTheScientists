@@ -3,16 +3,19 @@ package levels.level2;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 
 import game.AttaqueBunNysterio;
 import game.Boss;
 import game.Ramzi;
+import game.WorldMap;
 
 public class BunNysterio extends Boss
 {
@@ -25,8 +28,9 @@ public class BunNysterio extends Boss
 	private float xPic, yPic;
 	private int timerIntervalPics = 0;
 	private int timerTunnel = 0;
-	private int pasDeplacementTunnelX = 10;
-	private int pasDeplacementTunnelY = 10;
+	private int pasDeplacementTunnelX = 0;
+	private int pasDeplacementTunnelY = 0;
+	protected Animation[] animationsTunnel = new Animation[1];
 	
 	
 	public BunNysterio(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn)
@@ -36,30 +40,60 @@ public class BunNysterio extends Boss
 		super.player = player;
 		super.x = xMadMouseSpawn;
 		super.y = yMadMouseSpawn;
-		super.maxPv = 100;
+		if(WorldMap.difficulte == true) {
+			super.maxPv = 50;
+		}else {
+			super.maxPv = 20;
+		}
 		super.ptVie = maxPv;
 		super.srcSpriteBoss = "bunNysterio";
 		super.nbColonne = 8;
+		super.nomBoss = "BunNysterio";
 	}
 
+	
+	public Animation[] prepareAnimationTunnel() throws SlickException {
+
+		SpriteSheet spriteBoss = new SpriteSheet("ressources/sprites/Attaques/Bosses/BunNysterio/tunnel.png", 128, 128);
+		this.animationsTunnel[0] = loadAnimation(spriteBoss, 0, 2, 0);
+
+		return animationsTunnel;
+	}
+
+	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
+		Animation animation = new Animation();
+		for (int x = startX ; x < endX ; x++) {
+			animation.addFrame(spriteSheet.getSprite(x, y), 100);
+		}
+		return animation;
+	}
+	
 	public void init() throws SlickException
 	{
 		super.calcZoneCollision();
 		super.direction = 2;
 		prepareAnimation();
+		prepareAnimationTunnel();
 	}
 	
 	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException
 	{
-		g.setColor(new Color(0, 0, 0, 0.5f));
-		g.fillOval(x - 32, y - 16, 64, 32); // création d'une ombre
+		Graphics circle = new Graphics();
+		circle.setColor(Color.red);
+		circle.fillOval(this.x-10, this.y-10, 20, 20);
 		
-		g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
-			
+		if(attaqueTunnelEnCours){
+			g.drawAnimation(animationsTunnel[0], x - 64, y - 64);
+		}
+		else{
+			g.setColor(new Color(0, 0, 0, 0.5f));
+			g.fillOval(x - 32, y - 16, 64, 32); // création d'une ombre
+			g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
+		}
+		
 		for(int i = 0 ; i < attaqueBunNysterio.size() ; i++)
 		{
-			if(this.attaqueBunNysterio.get(i) !=null)
-			{
+			if(this.attaqueBunNysterio.get(i) !=null){
 				this.attaqueBunNysterio.get(i).render(g);
 			}
 		}
@@ -68,14 +102,23 @@ public class BunNysterio extends Boss
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException
 	{
-		realiserAction(delta);
-		super.canHitRamzi();
-		
-		if(cooldownAttaque==0){
-			bossTimer = (int)(Math.random() * (150-50))+50;
+		int vitesseDeplacementTunnelMax;
+		if(this.getPtVie() > this.getMaxPv()/2){
+			vitesseDeplacementTunnelMax = 10;
+		}else{
+			vitesseDeplacementTunnelMax = 20;
 		}
-		cooldownAttaque ++ ;
-		if(cooldownAttaque>=bossTimer){
+		super.canHitRamzi();
+
+		realiserAction(delta);
+		if(cooldownAttaque==0 && attaqueTunnelEnCours == false){
+			bossTimer = (int)(Math.random() * (250-100))+100;
+		}
+		if(attaqueTunnelEnCours == false  && attaqueTunnelEnCours == false)
+		{
+			cooldownAttaque ++ ;
+		}
+		if(cooldownAttaque>=bossTimer && attaqueTunnelEnCours == false ){
 			action=(int)(Math.random() * (4-2))+2;
 			cooldownAttaque=0;
 		}
@@ -98,6 +141,17 @@ public class BunNysterio extends Boss
 			timerTunnel++;
 			if(timerTunnel > 20)
 			{
+			
+				if(this.pasDeplacementTunnelX < vitesseDeplacementTunnelMax && this.pasDeplacementTunnelY < vitesseDeplacementTunnelMax
+						&& this.pasDeplacementTunnelX > -vitesseDeplacementTunnelMax && this.pasDeplacementTunnelY > -vitesseDeplacementTunnelMax){
+					if(pasDeplacementTunnelX > 0){
+						pasDeplacementTunnelX ++;
+						pasDeplacementTunnelY ++;
+					}else{
+						pasDeplacementTunnelX --;
+						pasDeplacementTunnelY --;
+					}
+				}
 				attaqueTunnels();
 				if(timerTunnel > 200)
 				{
@@ -107,7 +161,7 @@ public class BunNysterio extends Boss
 		}
 		
 	}
-
+	
 	private void realiserAction(int delta)
 	{
 		float futurX = getFuturX(delta, 1.5);
@@ -123,9 +177,12 @@ public class BunNysterio extends Boss
 				}
 			}else if (isCollisionPersos()){
 		  		super.knockBack(super.whereIsCollisionPerso);
-		  		
 		  	} else{
-				suivrePlayer(player, 1.5, delta, false);
+		  		if(this.getPtVie() > this.getMaxPv() / 2){
+					suivrePlayer(player, 1, delta, false);
+				}else{
+					suivrePlayer(player, 3, delta, false);
+				}
 			}
 			break;
 		case 2 : 
@@ -134,35 +191,23 @@ public class BunNysterio extends Boss
 			//yPic = this.y;
 			break;
 		case 3 :
-			//attaqueTunnelEnCours = true;
-			action =1;
+			attaqueTunnelEnCours = true;
 			break;
 		}
 	}
 	
 	private void attaqueTunnels()
 	{
-		if(isCollision(x+10, y+10)
-		|| isCollision(x+10, y-10)
-		|| isCollision(x-10, y+10)
-		|| isCollision(x-10, y-10))
+		if(isCollision(x+20, y) || isCollision(x-20, y)){
+			pasDeplacementTunnelX = -pasDeplacementTunnelX;
+		}
+		else if(isCollision(x, y+20) || isCollision(x, y-20)){
+			pasDeplacementTunnelY = -pasDeplacementTunnelY;
+		}
+		else if(isCollision(x+20, y+20) || isCollision(x+20, y-20) || isCollision(x-20, y+20) || isCollision(x-20, y-20))
 		{
-			if(isCollision(x+15, y+10) || isCollision(x+15, y-10))
-			{
-				pasDeplacementTunnelX = -10;
-			}
-			else if(isCollision(x-15, y+10) || isCollision(x-15, y-10))
-			{
-				pasDeplacementTunnelX = +10;
-			}
-			else if(isCollision(x+10, y+15) || isCollision(x-10, y+15))
-			{
-				pasDeplacementTunnelY = -10;
-			}
-			else if(isCollision(x+10, y-15) || isCollision(x-10, y-15))
-			{
-				pasDeplacementTunnelY = +10;
-			}
+			pasDeplacementTunnelY = -pasDeplacementTunnelY;
+			pasDeplacementTunnelX = -pasDeplacementTunnelX;
 		}
 		x += pasDeplacementTunnelX;
 		y += pasDeplacementTunnelY;
@@ -176,13 +221,24 @@ public class BunNysterio extends Boss
 	}
 	
 	private void attaquerPrimaire()
-	{	if(nbPicsTotal == 0){	
-			nbPicsTotal = (int)(Math.random() * (20-10)) + 10;
+	{	if(nbPicsTotal == 0){
+
+			if(this.getPtVie() > this.getMaxPv()/2){
+				nbPicsTotal = (int)(Math.random() * (20-10)) + 10;
+			}else{
+				nbPicsTotal = (int)(Math.random() * (50-25)) + 25;
+			}
 		}
-		if(timerIntervalPics % 6 == 0 && nbPicsActuel < nbPicsTotal)
+		if(timerIntervalPics % 3 == 0 && nbPicsActuel < nbPicsTotal)
 		{
-			placerPics();
-			attaqueBunNysterio.add(new AttaqueBunNysterio(player, xPic, yPic, direction));
+			if(this.getPtVie() > this.getMaxPv()/2){
+				placerPics();
+				attaqueBunNysterio.add(new AttaqueBunNysterio(player, xPic, yPic, direction));
+			}
+			else{
+				placerPics();
+				attaqueBunNysterio.add(new AttaqueBunNysterio(player, xPic, yPic, (int)(Math.random() * 4)));
+			}
 			nbPicsActuel++;
 		}
 		if(nbPicsActuel == nbPicsTotal)
@@ -196,11 +252,8 @@ public class BunNysterio extends Boss
 		}
 	}
 	
-	private void placerPics()
+	private void setFirstXYPics(int intervalEntreDeuxPics)
 	{
-		int randomEspacement = (int)(Math.random() * 100)-50;
-		int intervalEntreDeuxPics = 32;//(int)(Math.random() * 96 - 32 + 32);
-
 		if(xPic == 0){
 			switch(direction)
 			{
@@ -218,7 +271,7 @@ public class BunNysterio extends Boss
 			switch(direction)
 			{
 			case 0 :
-				yPic = y + intervalEntreDeuxPics; break;
+				yPic = y -128 + intervalEntreDeuxPics; break;
 			case 1 : 
 				yPic = y; break;
 			case 2 : 
@@ -226,6 +279,27 @@ public class BunNysterio extends Boss
 			case 3 : 
 				yPic = y; break;
 			}
+		}
+	}
+	
+	
+	private void placerPics()
+	{	
+		int randomEspacement;
+		int intervalEntreDeuxPics;
+		if(this.getPtVie() > this.getMaxPv()/2)
+		{
+			randomEspacement = (int)(Math.random() * 100)-50;
+			intervalEntreDeuxPics = 32;
+		}
+		else
+		{
+			randomEspacement = (int)(Math.random() * 300)-150;
+			intervalEntreDeuxPics = (int)(Math.random() * 300)-150;
+		}
+
+		if(xPic == 0 || yPic == 0){
+			setFirstXYPics(intervalEntreDeuxPics);
 		}
 		
 		switch(direction)
@@ -248,7 +322,7 @@ public class BunNysterio extends Boss
 			break;
 		}
 	}
-	
+
 	private void destroyPics()
 	{	
 		nbPicsTotal = 0;
@@ -257,7 +331,4 @@ public class BunNysterio extends Boss
 		this.attaqueBunNysterio.clear();			
 		
 	}
-	
-	
-	
 }

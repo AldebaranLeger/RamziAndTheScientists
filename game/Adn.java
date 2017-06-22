@@ -6,28 +6,33 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.geom.Circle;
+import levels.*;
 
 public class Adn
 {
 	private Animation[] animations = new Animation[1];
-	private WorldMap worldMap;
+	private Level level;
 	private Ramzi player;
 	private float xHeart, yHeart;
 	private int indexInHeratArray;
-	private Circle zoneCollision;
+	private int nbpointGagne = 1;
 	
-	public Adn(WorldMap worldMap, Ramzi player, float xHeart, float yHeart, int i)
+	public Adn(Level level, Ramzi player, float xHeart, float yHeart, int i)
 	{
-		this.worldMap = worldMap;
+		this.level = level;
 		this.player = player;
 		this.xHeart = xHeart;
 		this.yHeart = yHeart;
 		this.indexInHeratArray = i;
+		
+		try {
+			this.prepareAnimation();
+		} catch (SlickException e) {}
 	}
 	
 	public Animation[] prepareAnimation() throws SlickException {
 
-		SpriteSheet spriteMadMouse = new SpriteSheet("ressources/item/ADN.png", 32, 32);
+		SpriteSheet spriteMadMouse = new SpriteSheet("ressources/Items/ADN.png", 32, 32);
 		this.animations[0] = loadAnimation(spriteMadMouse, 0, 1, 0);
 
 		return animations;
@@ -41,13 +46,6 @@ public class Adn
 		return animation;
 	}
 
-	
-	public void init() throws SlickException
-	{
-		prepareAnimation();
-		calcZoneCollision();
-	}
-	
 	public void render(Graphics g) throws SlickException
 	{
 		g.setColor(new Color(0, 0, 0, 0.5f));
@@ -55,15 +53,14 @@ public class Adn
 		g.drawAnimation(animations[0], xHeart - 16, yHeart - 24);
 	}
 	
-	public void update(int delta) throws SlickException
+	public void update(int delta, int i) throws SlickException
 	{
-		int nbpointGagne = 1;
 		if(player.calcZoneCollision().intersects(this.calcZoneCollision()))
 		{
 			if(player.getCurrentHp() + nbpointGagne <= player.getHp())
 			{
 				player.gagnerVie(nbpointGagne);
-				worldMap.destroyHeart(this.indexInHeratArray);
+				level.destroyHeart(i);
 			}
 		}
 
@@ -71,8 +68,7 @@ public class Adn
 	
 	public Circle calcZoneCollision()
 	{
-		zoneCollision = new Circle(this.xHeart, this.yHeart, 8);
-		return zoneCollision;
+		return new Circle(this.xHeart, this.yHeart, 8);
 
 	}
 }

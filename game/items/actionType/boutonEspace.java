@@ -14,4 +14,23 @@ public abstract class boutonEspace implements Objet {
 	public String getType(){
 		return this.props.type;
 	}
+	public String getName(){
+		return this.props.name;
+	}
+	public int getCooldown(){
+		return this.props.cooldown;
+	}
+	public int getCurrentCooldown(){
+		return this.props.currentCooldown;
+	}
+	public void updateCurrentCooldown(){
+		if(this.props.currentCooldown == 0){
+			this.props.currentCooldown = this.props.cooldown+1;
+		} else {
+			this.props.currentCooldown--;
+		}
+	}
+	public String getDescription() {
+		return this.props.description;
+	}
 }

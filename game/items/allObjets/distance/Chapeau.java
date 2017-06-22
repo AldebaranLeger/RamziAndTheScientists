@@ -15,9 +15,12 @@ public class Chapeau extends boutonEspace {
 		super.props.name = "chapeau";
 		super.props.damage = 2;
 		super.props.src = "Mad_Mouse_Hat.png";
+		super.props.cooldown = 250;
+		super.props.currentCooldown = super.props.cooldown+1;
+		super.props.description = "Appuie sur la touche espace pour libérer une vague de super \nsouris ! \nMaintenant diriges toi vers l’ échelle et poursuis ta quête !";
 	}
 	
 	public void effet(WorldMap worldMap, int direction, double vitesseX, double vitesseY) throws SlickException{
-		System.out.println("Le chapeaaaauuuuuu");
+		worldMap.createArmyOfLittleAlly();
 	}
 }

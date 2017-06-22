@@ -20,7 +20,6 @@ public class MadMouse extends Boss
 {
 	private TiledMap map;
 	private Ramzi player;
-	private float x, y;
 	private int direction;
 	private Animation[] animations = new Animation[8];
 	private Animation[] animationsAttaque = new Animation[4];
@@ -31,20 +30,11 @@ public class MadMouse extends Boss
 	private int attaqueCACState = 0; // Etat de l'attaque au CàC
 	private int prepareAttaqueState = 0;
 	private Color atkClr = new Color(Color.transparent);
-//	private int atkDistState=0;
-//	private int atkDistUpdate=0;
-//	private Rectangle fromage = null;
-//	private int timerFromage = 0;
-//	private float xDiff, yDiff, xScale, yScale;
 	Vector2f pos;
 	Vector2f dir;
 	private String srcMadMouse = "madMouse";
-	private int maxPv;
-	private int ptVie;
 	private boolean living = true;
 	private Level1 level;
-	
-	private boolean enrage = false;
 	
 	public MadMouse(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn, Level1 level)
 	{
@@ -53,21 +43,16 @@ public class MadMouse extends Boss
 		this.player = player;
 		this.x = xMadMouseSpawn;
 		this.y = yMadMouseSpawn;
-		this.ptVie = 20;
-		this.maxPv = 20;
+		if(WorldMap.difficulte == true) {
+			System.out.println(maxPv);
+			this.maxPv = 50;
+		} else {
+			this.maxPv = 20;
+		}
+		this.ptVie = maxPv;
 		this.level = level;
+		super.nomBoss = "MadMouse";
 	}
-	
-	// En attendant le 2e boss
-//	public MadMouse(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn, Level2 level){
-//		this.map = map;
-//		this.player = player;
-//		this.x = xMadMouseSpawn;
-//		this.y = yMadMouseSpawn;
-//		this.ptVie = 20;
-//		this.maxPv = 20;
-//	}
-	//
 	
 	public int getMaxPv(){
 		return this.maxPv;
@@ -158,9 +143,17 @@ public class MadMouse extends Boss
 		case 0 : break;
 		case 1 :
 			if (isCollision(futurX, futurY)) {
-				suivrePlayer(player, 1, delta, true);
-			} else{
-				suivrePlayer(player, 1, delta, false);
+				if(WorldMap.difficulte == true) {
+					suivrePlayer(player, 1.5, delta, true);
+				} else {
+					suivrePlayer(player, 1, delta, true);
+				}
+			}else{
+				if(WorldMap.difficulte == true) {
+					suivrePlayer(player, 1.5, delta, false);
+				} else {
+					suivrePlayer(player, 1, delta, false);
+				}				
 			}
 			break;
 		case 2 : 
@@ -226,26 +219,21 @@ public class MadMouse extends Boss
 			atkClr = new Color(Color.transparent);
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[0], x-216, y-250);
-			
-			g.resetTransform();
 			attaquerCAC();
 			break;
 		case 45 :
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[1], x-216, y-250);
-			g.resetTransform();
 			attaquerCAC();
 			break;
 		case 46 :
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[2], x-216, y-250);
-			g.resetTransform();
 			attaquerCAC();
 			break;
 		case 47 :
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[3], x-216	, y-250);
-			g.resetTransform();
 			attaquerCAC();
 			break;
 		case 50 :
@@ -307,21 +295,21 @@ public class MadMouse extends Boss
 		animateAttaqueCACbyTimer(g);
 	}
 	
-	public boolean isCollision(float x, float y) 
-	{
-		int tileW = map.getTileWidth();
-		int tileH = map.getTileHeight();
-		int collisionLayer = this.map.getLayerIndex("collision");
-		Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
-		boolean collision = tile != null;
-		if (collision)
-		{
-			Color color = tile.getColor((int) x % tileW, (int) y % tileH);
-			collision = color.getAlpha() > 0;
-		}
-		
-		return collision;
-	}
+//	public boolean isCollision(float x, float y) 
+//	{
+//		int tileW = map.getTileWidth();
+//		int tileH = map.getTileHeight();
+//		int collisionLayer = this.map.getLayerIndex("collision");
+//		Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
+//		boolean collision = tile != null;
+//		if (collision)
+//		{
+//			Color color = tile.getColor((int) x % tileW, (int) y % tileH);
+//			collision = color.getAlpha() > 0;
+//		}
+//		
+//		return collision;
+//	}
 
 	private void prepareAttaqueCAC() {
 		attaqueCACTimer++;
@@ -369,69 +357,6 @@ public class MadMouse extends Boss
 			this.player.takeDamage(3);
 		}
 
-	}
-	
-	private float getDiffXetY(float playerCoordonnee, float bossCoordonnee)
-	{
-		if (playerCoordonnee > bossCoordonnee)
-			return playerCoordonnee - bossCoordonnee;
-		else
-			return  bossCoordonnee - playerCoordonnee;
-	}
-	
-	private void ifCollision(float angle, double vitesse)
-	{
-  		if(isCollision(this.x,this.y-1)){
-			x += Math.cos(angle) * vitesse;
-  			y+=1;
-  		}
-  		if(isCollision(this.x,this.y+1)){
-			x += Math.cos(angle) * vitesse;
-  			y-=1;
-  		}
-  		if(isCollision(this.x+1,this.y)){
-  			x-=1;
-			y += Math.sin(angle) * vitesse;
-  		}
-  		if(isCollision(this.x-1,this.y)){
-  			x+=1;
-			y += Math.sin(angle) * vitesse;
-  		}
-	}
-	
-	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {		
-		float diffX, diffY;
-
-		diffX = getDiffXetY(player.getX(), this.x);
-		diffY = getDiffXetY(player.getY(), this.y);
-
-		if (diffX > diffY) {
-			if (player.getX() > this.x)
-				setDirection(3);
-			if (player.getX() < this.x)
-				setDirection(1);
-		} else {
-			if (player.getY() > this.y)
-				setDirection(2);
-			if (player.getY() < this.y)
-				setDirection(0);
-		}
-
-		diffX = player.getX() - x;
-		diffY = player.getY() - y;
-		float angle = (float) Math.atan2(diffY, diffX);
-	  	if(collision)
-	  	{
-	  		ifCollision(angle, vitesse);
-	  	} else {
-	  		if(this.enrage){
-				x += (Math.cos(angle) * vitesse)*3;
-				y += (Math.sin(angle) * vitesse)*3;
-	  		} else {
-				x += Math.cos(angle) * vitesse;
-				y += Math.sin(angle) * vitesse;
-	  		}
-		}
 	}
 	
 	public int getPtVie() {

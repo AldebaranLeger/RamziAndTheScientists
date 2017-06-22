@@ -14,7 +14,7 @@ import org.newdawn.slick.tiled.TiledMap;
  */
 public class BulletEnnemi {
 	
-	private Animation[] animationBulletEnnemi = new Animation[1];
+	private Animation[] animationBulletEnnemi = new Animation[4];
 	private TiledMap map;
 	private WorldMap worldMap;
 	private Ramzi player;
@@ -65,8 +65,11 @@ public class BulletEnnemi {
 	
 	public Animation[] prepareAnimationBulletCarrot() throws SlickException {
 
-		SpriteSheet spriteBullet = new SpriteSheet("ressources/sprites/Attaques/Ramzi/lootMadMouse/fromage2.png", 32, 32);
-		this.animationBulletEnnemi[0] = loadAttaqueAnimation(spriteBullet, 0, 7, 0);
+		SpriteSheet spriteBullet = new SpriteSheet("ressources/sprites/Attaques/Bosses/BunNysterio/Projectiles_Carottes.png", 32, 32);
+		this.animationBulletEnnemi[0] = loadAttaqueAnimation(spriteBullet, 0, 1, 0);
+		this.animationBulletEnnemi[3] = loadAttaqueAnimation(spriteBullet, 0, 1, 1);
+		this.animationBulletEnnemi[2] = loadAttaqueAnimation(spriteBullet, 0, 1, 2);
+		this.animationBulletEnnemi[1] = loadAttaqueAnimation(spriteBullet, 0, 1, 3);
 
 		return animationBulletEnnemi;
 	}
@@ -86,7 +89,7 @@ public class BulletEnnemi {
 			ombre.setColor(new Color(0,0,0, 0.5f));
 			ombre.fillOval(xProjectile+12, yProjectile+16, 20, 20); //création d'une ombre
 			
-			g.drawAnimation(animationBulletEnnemi[0], xProjectile, yProjectile);
+			g.drawAnimation(animationBulletEnnemi[directionProjectile], xProjectile, yProjectile);
 		}
 	}
 	

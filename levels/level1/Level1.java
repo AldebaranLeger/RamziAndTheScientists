@@ -29,17 +29,23 @@ import levels.level2.Level2;
 public class Level1 extends Level {
 	private MadMouse madMouse;
 	private List<ProjCheese> tabCheese = new ArrayList<ProjCheese>();
-	private boolean bossJustDied = false;
+	private boolean lootAppear = false;
 	private LootedObjet lootedObjet = null;
 	private float lastMadMouseX, lastMadMouseY;
+	private int lootTimeToken = 0;
 		
 	public Level1(WorldMap worldMap, TiledMap map, Ramzi player)
 	{
 		super(worldMap, map, player);
-		super.nbEnnemisDebut = 1;  
+		if(WorldMap.difficulte == true) {
+			super.maxEnnemisDebut = 10;
+		} else {
+			super.maxEnnemisDebut = 5;
+		}		
 	}
 	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException {
+		nbEnnemisDebut = super.maxEnnemisDebut;
 		tileW = map.getTileWidth();
 		tileH = map.getTileHeight();
 		collisionLayer = map.getLayerIndex("collision");
@@ -57,10 +63,6 @@ public class Level1 extends Level {
 	public void render(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
 		map.render(0,0,0);
 		map.render(0,0,1);
-		if(this.lootedObjet != null){
-			this.lootedObjet.render(g);
-		}
-		renderRamzi(g);
 		//affiche les ennemis dans la map
 		if(tabEnnemi!=null) {
 			for(int i = 0 ; i < nbEnnemisDebut; i ++ )
@@ -73,6 +75,7 @@ public class Level1 extends Level {
 			}
 		}
 		renderBoss(container, stateBasedGame, g);
+		renderAdn(g);
 		if(youWin==true && treasureSquareVisible == true) {
 			if(openTreasure == false)
 			{
@@ -83,15 +86,30 @@ public class Level1 extends Level {
 				g.drawAnimation(super.animations[0], bossLastX-32, bossLastY-32);
 			}
 			if(ladderSquareVisible == true) {
-				g.setColor(Color.blue);
-				g.fillRect(xLadder, yLadder , 10, 10);// échelle pour passer au second niveau
+				ladder = new Image("ressources/img/ladder.png");
+				g.fillOval(xLadder-8, yLadder+24, 32, 16);// échelle pour passer au second niveau
+				ladder.draw(xLadder-15, yLadder-33);
+			}
+		}
+		if(this.lootedObjet != null){
+			this.lootedObjet.render(g);
+		}
+		renderRamzi(g);
+	}
+	
+	private void renderAdn(Graphics g) throws SlickException
+	{
+		for(int i = 0 ; i < adn.size(); i ++ )
+		{
+			if(adn.get(i)!=null){
+				adn.get(i).render(g);
 			}
 		}
 	}
 	
 	public void update(GameContainer container, StateBasedGame stateBasedGame, int delta) throws SlickException {
+		updateAdn(delta);
 		if(tabEnnemi!=null){
-			nbEnnemisSauves = 0;
 
 			// Permet de gérer la profondeur d'affichage des ennemis, 
 			// mais provoque de temps à autre un NullPointerException
@@ -123,7 +141,7 @@ public class Level1 extends Level {
 				}
 				
 			}
-			if(tabEnnemi.size()==0){
+			if(nbEnnemisDebut==0){
 				tabEnnemi=null;
 				System.out.println("pof");
 				madMouse = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve, this); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
@@ -151,7 +169,6 @@ public class Level1 extends Level {
 						}
 					}
 				} else {
-					bossJustDied = true;
 					youWin = true;
 					bossLastX = madMouse.getX();
 					bossLastY = madMouse.getY();
@@ -159,10 +176,8 @@ public class Level1 extends Level {
 				}
 				
 			} else {
-				if(bossJustDied){
+				if(lootAppear){
 					defineMadMouseLoot();
-					this.bossJustDied = false;
-					this.lootedObjet.init();
 				} else if(this.lootedObjet != null) {
 					lootedObjet.update(delta);
 					if(this.player.calcZoneCollision().intersects(this.lootedObjet.calcZoneCollision())){
@@ -221,18 +236,26 @@ public class Level1 extends Level {
 		}		
 	}
 	
+	private void updateAdn(int delta) throws SlickException
+	{
+		for(int i = 0 ; i < adn.size(); i ++ )
+		{
+			if(adn.get(i)!=null){
+				adn.get(i).update(delta, i);
+			}
+		}
+	}
+	
 	
 	private void prepareTreasure()
 	{
-		if(timerLadder > 50) {
-			treasureSquareVisible = true;
-			if(treasureSquare.intersects(player.calcZoneCollision())) 
-			{
-				openTreasure = true; // déclenche l'animation
-				createLadder = true; //créer l'échelle après l'ouverture du trésor contenant les items
-			}
-			timerLadder = 0;
+		treasureSquareVisible = true;
+		if(treasureSquare.intersects(player.calcZoneCollision())) 
+		{
+			openTreasure = true; // déclenche l'animation
+			createLadder = true; //créer l'échelle après l'ouverture du trésor contenant les items
 		}
+		timerLadder = 0;
 	}
 	
 	private void prepareNextLevel()
@@ -240,6 +263,7 @@ public class Level1 extends Level {
 		//si l'échelle n'est pas crée alors on la crée.
 		if(yLadder == 0 && xLadder == 0)
 		{
+			this.lootAppear = true;
 			addLadder();
 		}
 		//si le joueur passe sur l'échelle, on passe au niveau suivant
@@ -255,7 +279,7 @@ public class Level1 extends Level {
 	
 	private void nextLevel() throws SlickException
 	{		
-		TiledMap map2 = new TiledMap("ressources/map/map1.tmx"); //map niveau 2
+		TiledMap map2 = new TiledMap("ressources/map/map_level_2.tmx"); //map niveau 2
 		Level nextLevel = new Level2(worldMap, map2, player);
 		worldMap.updateCurrentLevel(nextLevel);
 		worldMap.initLevel();
@@ -289,12 +313,18 @@ public class Level1 extends Level {
 	}
 	
 	
-	private void defineMadMouseLoot(){
-		int index  = (int)(Math.random() * (10));
-		if(index==0){
-			this.lootedObjet = new LootedObjet(new Chapeau(), lastMadMouseX, lastMadMouseY);
+	private void defineMadMouseLoot() throws SlickException{
+		if(this.lootTimeToken>5){
+			int index  = (int)(Math.random() * (10));
+			if(index<=3){
+				this.lootedObjet = new LootedObjet(new Chapeau(), lastMadMouseX, lastMadMouseY);
+			} else {
+				this.lootedObjet = new LootedObjet(new Fromages(), lastMadMouseX, lastMadMouseY);
+			}
+			this.lootAppear = false;
+			this.lootedObjet.init();
 		} else {
-			this.lootedObjet = new LootedObjet(new Fromages(), lastMadMouseX, lastMadMouseY);
+			this.lootTimeToken++;
 		}
 	}
 	
@@ -318,6 +348,8 @@ public class Level1 extends Level {
 		int mapLayer = map.getLayerIndex("sol");
 		float yEnnemi = 0;
 		float xEnnemi = 0;
+		// A revoir
+		Rectangle rayonRamzi;
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
 			boolean inMap = false;
@@ -325,6 +357,7 @@ public class Level1 extends Level {
 			boolean inRamziRayon;
 			do
 			{
+				rayonRamzi = new Rectangle(this.player.getX(), this.player.getY(), 400,400);
 				inRamziRayon  = false;
 				//coordonnées de l'ennemi calculé aléatoirement
 				yEnnemi = (float)(Math.random() * (map.getHeight() * map.getTileHeight() - 0)); 
@@ -345,8 +378,7 @@ public class Level1 extends Level {
 						tabEnnemi.add(new Souris2(this.worldMap, map,player,xEnnemi,yEnnemi, i));
 				}
 				// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
-				if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
-						&& ( yEnnemi > (player.getY() - 200) && ( yEnnemi < player.getY() + 200))) 
+				if(rayonRamzi.contains(xEnnemi, yEnnemi))
 				{
 					inRamziRayon = true;
 				}

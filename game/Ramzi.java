@@ -52,11 +52,29 @@ public class Ramzi{
 		Ramzi.worldMap = worldMap;
 		this.maxHp = 12;
 		this.hp = this.maxHp;
+		currentClickGauche = null;
+		currentClickDroit = null;
+		currentBoutonEspace = null;
 	}
 	
 	public Animation[] prepareAnimation() throws SlickException {
 
 		SpriteSheet spriteRamzi = new SpriteSheet("ressources/sprites/Sprites_Ramzi.png", 64, 64);
+		this.animations[0] = loadAnimation(spriteRamzi, 0, 1, 0);
+		this.animations[1] = loadAnimation(spriteRamzi, 0, 1, 1);
+		this.animations[2] = loadAnimation(spriteRamzi, 0, 1, 2);
+		this.animations[3] = loadAnimation(spriteRamzi, 0, 1, 3);
+		this.animations[4] = loadAnimation(spriteRamzi, 1, 8, 0);
+		this.animations[5] = loadAnimation(spriteRamzi, 1, 8, 1);
+		this.animations[6] = loadAnimation(spriteRamzi, 1, 8, 2);
+		this.animations[7] = loadAnimation(spriteRamzi, 1, 8, 3);
+
+		return animations;
+	}
+	
+	public Animation[] prepareAnimation(String src) throws SlickException {
+
+		SpriteSheet spriteRamzi = new SpriteSheet("ressources/"+src, 64, 64);
 		this.animations[0] = loadAnimation(spriteRamzi, 0, 1, 0);
 		this.animations[1] = loadAnimation(spriteRamzi, 0, 1, 1);
 		this.animations[2] = loadAnimation(spriteRamzi, 0, 1, 2);
@@ -109,6 +127,9 @@ public class Ramzi{
 		prepareAnimation();
 		preparePolygons();		
 		prepareAnimationAttaque();
+		currentClickGauche = null;
+		currentClickDroit = null;
+		currentBoutonEspace = null;
 		
 	}	
 	
@@ -123,7 +144,7 @@ public class Ramzi{
 	private Animation loadAttaqueAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
 		Animation animation = new Animation();
 		for (int x = startX ; x < endX ; x++) {
-			animation.addFrame(spriteSheet.getSprite(x, y), 20);
+			animation.addFrame(spriteSheet.getSprite(x, y), 50);
 		}
 		return animation;
 	}
@@ -140,11 +161,11 @@ public class Ramzi{
 		if(isAtking)
 		{
 			switch(this.directionAttaque) {
-			case 0 : g.drawAnimation(animationsAttaque[0], x - 16, y - 64); break; //atk top
-			case 1 : g.drawAnimation(animationsAttaque[0], x + 32, y - 16); break; //atk droite
-			case 2 : g.drawAnimation(animationsAttaque[0], x - 16 , y + 16); break; //atk bas
-			case 3 : g.drawAnimation(animationsAttaque[0], x - 64, y - 16); break; //atk gauche
-		}
+				case 0 : g.drawAnimation(animationsAttaque[0], x - 16, y - 64); break; //atk top
+				case 1 : g.drawAnimation(animationsAttaque[0], x + 32, y - 16); break; //atk droite
+				case 2 : g.drawAnimation(animationsAttaque[0], x - 16 , y + 16); break; //atk bas
+				case 3 : g.drawAnimation(animationsAttaque[0], x - 64, y - 16); break; //atk gauche
+			}
 		}
 	}
 	
@@ -493,6 +514,9 @@ public class Ramzi{
 	{
 		if(this.immuniteCooldown==0){
 			this.immuniteCooldown = 1;
+			if(WorldMap.difficulte == true) {
+				dmg+=1;
+			}
 			this.hp -= dmg;
 			if(this.hp<=0){
 				this.dead();
@@ -507,6 +531,9 @@ public class Ramzi{
 	}
 	public void setCurrentClickDroit(clickDroit item){
 		this.currentClickDroit = item;
+		try {
+			this.prepareAnimation("sprites/Equip Item/"+item.getName()+".png");
+		} catch (SlickException e) {}
 	}
 	
 	public clickGauche getCurrentClickGauche(){
@@ -514,6 +541,9 @@ public class Ramzi{
 	}
 	public void setCurrentClickGauche(clickGauche item){
 		this.currentClickGauche = item;
+		try {
+			this.prepareAnimation("sprites/Equip Item/"+item.getName()+".png");
+		} catch (SlickException e) {}
 	}
 	
 	public boutonEspace getCurrentBoutonEspace(){
@@ -521,6 +551,9 @@ public class Ramzi{
 	}
 	public void setCurrentBoutonEspace(boutonEspace item){
 		this.currentBoutonEspace = item;
+		try {
+			this.prepareAnimation("sprites/Equip Item/"+item.getName()+".png");
+		} catch (SlickException e) {}
 	}
 	
 	public void boutonEspacePressed() throws SlickException{

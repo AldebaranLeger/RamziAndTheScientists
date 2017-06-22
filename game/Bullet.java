@@ -7,6 +7,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public class Bullet 
@@ -25,7 +26,7 @@ public class Bullet
 	private boolean active = true;
 	private static int maxLifetime = 500;
 	private Graphics projectile;
-	private Rectangle projectileArea;
+	private Circle projectileArea;
 	private Animation[] animationsBullet = new Animation[1];
 	
 	
@@ -133,44 +134,56 @@ public class Bullet
 	
 	private void touchEnnemis()
 	{
-		projectileArea = new Rectangle((int)xProjectile, (int)yProjectile-10, 20,20);
+		projectileArea = new Circle((int)xProjectile, (int)yProjectile-10, 20);
 
 		for(int i = 0; i<this.worldMap.getEnnemisDebut();i++){
 			if(this.canTouchEnnemis(projectileArea, i))
 			{
 				if(WorldMap.tabEnnemi != null){
-					WorldMap.tabEnnemi.get(i).takeDamage(1);
-				} else if (this.worldMap.getBossLevel() != null){
-					this.worldMap.getBossLevel().takeDamage(1);
+					this.worldMap.tabEnnemi.get(i).takeDamage(1);
 				}
 				this.active = false;
 			}
+			
 		}
-	}
-	
-	public boolean canTouchEnnemis(Rectangle damageArea, int i)
-	{
-		boolean result = false;
-		if(WorldMap.tabEnnemi!=null){
-				if(WorldMap.tabEnnemi.get(i)!=null){
-					if(damageArea.contains(WorldMap.tabEnnemi.get(i).getX() +10, WorldMap.tabEnnemi.get(i).getY() -10) ||
-					   damageArea.contains(WorldMap.tabEnnemi.get(i).getX() -10, WorldMap.tabEnnemi.get(i).getY() -10) ||
-					   damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY() -30) ||
-					   damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY() +5)){
-						
-						result = true;
-					}
-				}
-		} else {
-			try
-			{
-				if(damageArea.contains(this.worldMap.getBossLevel().getX(), this.worldMap.getBossLevel().getY()))
-				{
-					result = true;
+		if(this.worldMap.getBossLevel() != null){
+			if(this.canTouchBoss(projectileArea)){
+				if (this.worldMap.getBossLevel() != null){
+					this.worldMap.getBossLevel().takeDamage(1);
+					this.active = false;
 				}
 			}
-			catch(Exception e){}
 		}
+	}
+
+	public boolean canTouchBoss(Circle damageArea)
+	{
+		if(damageArea.intersects(this.worldMap.getBossLevel().calcZoneCollision())){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	public boolean canTouchEnnemis(Circle damageArea, int i)
+	{
+		boolean result = false;
+		try{
+			if(WorldMap.tabEnnemi!=null){
+				if(WorldMap.tabEnnemi.size() > 0){
+						if(WorldMap.tabEnnemi.get(i)!=null)
+						{
+							if(damageArea.contains(WorldMap.tabEnnemi.get(i).getX() +10, WorldMap.tabEnnemi.get(i).getY() -10) ||
+							   damageArea.contains(WorldMap.tabEnnemi.get(i).getX() -10, WorldMap.tabEnnemi.get(i).getY() -10) ||
+							   damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY() -30) ||
+							   damageArea.contains(WorldMap.tabEnnemi.get(i).getX(), WorldMap.tabEnnemi.get(i).getY() +5)){
+								
+								result = true;
+							}
+						}
+				}
+			}
+		}catch(ArrayIndexOutOfBoundsException e){}
 		return result;
 	}
 	
@@ -217,7 +230,7 @@ public class Bullet
 			
 			Graphics ombre = new Graphics();
 			ombre.setColor(new Color(0,0,0, 0.5f));
-			ombre.fillOval(xProjectile-12, yProjectile-16, 20, 20); //création d'une ombre
+			ombre.fillOval(xProjectile-12, yProjectile, 20, 20); //création d'une ombre
 			
 			this.yProjectileRender = this.yProjectile;
 			if(this.lived >= 350){
@@ -238,5 +251,10 @@ public class Bullet
 	public boolean isAlive()
 	{
 		return active;
+	}
+	
+	public void changerBulletNiveau(TiledMap newmap)
+	{
+		this.map = newmap;
 	}
 }

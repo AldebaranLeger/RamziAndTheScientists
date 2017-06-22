@@ -1,4 +1,5 @@
 package levels;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.newdawn.slick.Animation;
@@ -21,7 +22,7 @@ public abstract class Level {
 	protected TiledMap map;
 	protected Boss boss;
 	protected List<Ennemi> tabEnnemi;
-	protected int nbEnnemisDebut;
+	protected int nbEnnemisDebut, maxEnnemisDebut;
 	protected int nbEnnemisSauves;
 	protected int totalEnnemisSauves;
 	protected boolean bossArrives=false;	
@@ -33,8 +34,9 @@ public abstract class Level {
 	protected boolean inMap = false, inCollision = false, inRamziRayon;
 	protected int tileW, tileH, collisionLayer, mapLayer;
 	protected Animation[] animations = new Animation[1];
-	protected Image closedTreasure;
+	protected Image closedTreasure, ladder;
 	protected Rectangle ladderSquare, treasureSquare;
+	protected static List<Adn> adn;
 	
 	/*public Level(WorldMap worldMap, TiledMap map) 
 	{
@@ -45,6 +47,7 @@ public abstract class Level {
 		this.worldMap = worldMap;
 		this.map = map;
 		this.player = player;
+		adn =  new ArrayList<Adn>();
 	}
 	
 	protected Animation[] prepareAnimationTreasure(String srcSprite) throws SlickException {
@@ -81,16 +84,27 @@ public abstract class Level {
 	}
 	
 	public int getNbEnnemisDebut() {
-		return this.nbEnnemisDebut;
+		return this.maxEnnemisDebut;
 	}
 	public int getNbEnnemisSauves() {
-		return this.nbEnnemisSauves;
+		return this.totalEnnemisSauves;
 	}
 	
 	public List<Ennemi> getTabEnnemi() {
 		return this.tabEnnemi;
 	}
 	
+	public void dropHeart(Ramzi player, float xHeart, float yHeart, int index)
+	{
+		adn.add(new Adn(this, player, xHeart, yHeart, index));
+	}
+	
+	public void destroyHeart(int i)
+	{
+		this.adn.remove(i);
+	}
+	
 	public TiledMap getMap() { return this.map;	}
 	public Boss getBoss() {return this.boss;}
+	public int getTotalEnnemisSauves(){return this.totalEnnemisSauves;}
 }

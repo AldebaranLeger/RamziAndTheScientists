@@ -14,4 +14,7 @@ public abstract class clickGauche implements Objet {
 	public String getType(){
 		return this.props.type;
 	}
+	public String getName(){
+		return this.props.name;
+	}
 }
