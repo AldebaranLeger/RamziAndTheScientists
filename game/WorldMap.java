@@ -28,28 +28,32 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		private TiledMap map1; //une map pour chaque niveau
 		private Ramzi player;
 		private Camera camera;
-		public static Ennemi[] tabEnnemi;
+		public static List<Ennemi> tabEnnemi;
+		public static Adn[] coeurs = new Adn[25];
 		private List<Bullet> bullet = new ArrayList<Bullet>();
 		public static float cursorX, cursorY;
 		public Hud hud;
 		//public static MadMouse madMouse = null;
-		private ProjCheese tabCheese[] = new ProjCheese[10];
 		//menu pause
 		private boolean escapeMenu;
 		private Image btnResume, btnExit, btnMainMenu, txtGameOver, txtYouWin;
-		private MouseOverArea resume, exit, mainMenu;		
+		private MouseOverArea resume, exit, mainMenu;
+		private Dialogue dialogue;
+		private Dialogue dialogueSave;
+		private String[] dialogues = new String[3];
+		private String[] dialoguesSave = new String[2];
 		//écran Game Over
 		private boolean gameOver = false; 
-		//écran Gagné !
-		private boolean youWin = false;		
-
+		private boolean finDePartie = false;
 		private int attaqueDistanceCooldown = -1;
+		public boolean afficheDialog = true;
+		private boolean boiteDeDialogueDejaAffiche = false;
 		
 		private Level currentLevel; 
 		
 		public WorldMap (int id) {
 			this.id = id;
-			WorldMap.tabEnnemi =  new Ennemi[100];
+			WorldMap.tabEnnemi =  new ArrayList<Ennemi>();
 		}
 		
 		/**
@@ -64,8 +68,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		player.init();
 		
 		this.currentLevel = new Level1(this, map1, player); //niveau 1 au démarrage du jeu (sauvegarde impossible)	
-		currentLevel.setTabEnnemi(tabEnnemi);
-		currentLevel.init(container, stateBasedGame);
+		initLevel();
 		
 		this.hud = new Hud(player);
 		this.hud.init(this);
@@ -77,18 +80,31 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		
 		createMenu();
 	
+		prepareDialogues();
+	}
+
+	public void initLevel() throws SlickException 
+	{
+		tabEnnemi = new ArrayList<Ennemi>();
+		this.currentLevel.setTabEnnemi(tabEnnemi);
+		this.currentLevel.init(container, stateBasedGame);
 	}
 	
 	/**
 	 * affiche le contenu du jeu
 	 */
 	public void render(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException 
-	{		
+	{
+
 		g.translate(container.getWidth() / 2 - player.getX(), container.getHeight() / 2 - player.getY());//caméra suiveuse
 		this.currentLevel.render(container, stateBasedGame, g); //affiche map, ennemis et boss du niveau courant
 		playerBulletRefresh(g);
-		bossBulletRefresh(g);	
-		renderMenu(g);				
+		renderMenu(g);		
+		renderHearts(g);
+		if(this.dialogueSave != null)
+		{
+			this.dialogueSave.render(g);
+		}
 	}
 	
 	/**
@@ -96,18 +112,26 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 	 */
 	public void update(GameContainer container, StateBasedGame stateBasedGame, int delta) throws SlickException
 	{
-		if(escapeMenu == true || gameOver== true) {
+		if(this.dialogueSave != null){
+			this.afficheDialog = true;
+		}
+		if(this.currentLevel.getTotalEnnemisSauves() == 1 && boiteDeDialogueDejaAffiche == false)
+		{
+			prepareDialoguesSave();
+			boiteDeDialogueDejaAffiche = true;
+		}
+		if(escapeMenu == true || gameOver== true || afficheDialog == true) {
 			// on met le jeu en pause
 			container.pause();
 		} else
 		{
 			this.player.update(delta);
+			hud.update(delta);
 			currentLevel.setTabEnnemi(tabEnnemi);
 			this.currentLevel.update(container, stateBasedGame, delta);
 			tabEnnemi = currentLevel.getTabEnnemi();
 			camera.update(container);
 			playerBulletUpdate(delta);
-			bossBulletUpdate(delta);			
 			container.resume(); //continue les updates dans le GameContainer
 			
 			if(!this.player.isAlive()){
@@ -150,20 +174,65 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 		}
 	}
-	
-	/**
-	 * Affiche les attaques à distance des boss
-	 * @param g
-	 * @throws SlickException 
-	 */
-	public void bossBulletRefresh(Graphics g) throws SlickException {
-		for(int i = 0 ; i < 10 ; i ++)
-		{
-			if(tabCheese[i]!=null)
+
+
+	public void renderHearts(Graphics g) throws SlickException {
+		if(this.coeurs!=null){
+			for(int i = 0 ; i < coeurs.length; i ++ )
 			{
-				tabCheese[i].render(container, g);
+				if(coeurs[i]!=null){
+					coeurs[i].render(g);
+				}
 			}
 		}
+	}
+	
+	public void prepareDropHeart(float xHeart, float yHeart) throws SlickException
+	{
+		
+		for(int i=0 ; i < coeurs.length ; i++)
+		{
+			if(coeurs[i] == null)
+			{
+				this.currentLevel.dropHeart(player, xHeart, yHeart, i);
+				break;
+			}
+		}
+	}
+
+
+	public void prepareDialogues() throws SlickException {
+		dialogues[0] = "Bienvenue dans le jeu Ramzi & the Scientists ! Tu incarnes \nun petit rat aux multiples capacités déterminé à sauver \ntous les cobayes du laboratoire !";
+		dialogues[1] = "Pour avancer, utilise les touches ZQSD ou les flèches \ndirectionnelles. Pour lancer une attaque au corps à corps, \nutilise le clic gauche de ta souris. \nÀ toi de jouer !";
+		dialogues[2] = "";
+		this.dialogue = new Dialogue(this, dialogues);
+		dialogue.init(container);
+	}
+
+	public void prepareDialoguesSave() throws SlickException {
+		dialoguesSave[0] = "Bien joué ! Tu viens de sauver le premier animal ! \nRegarde le, il s'enfuit dans cette fumée.";
+		dialoguesSave[1] = "";
+		this.dialogueSave = new Dialogue(this, dialoguesSave);
+		dialogueSave.init(container);
+	}
+	
+	public void prepareDescriptionItem(String description) 
+	{
+		String[] descriptionTab = new String[2];
+		descriptionTab[0] = description;
+		descriptionTab[1] = "";
+		this.dialogue = new Dialogue(this, descriptionTab);
+		try {
+			dialogue.init(container);
+			afficheDialog = true;
+		} catch (SlickException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void deleteDialog() {
+		dialogue = null;
+		dialogueSave = null;
 	}
 	
 	/**
@@ -190,7 +259,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			mainMenu.setMouseOverColor(Color.orange);
 			exit.render(container, g);
 			exit.setMouseOverColor(Color.orange);
-		} else if(youWin == true){
+		} else if(this.finDePartie == true){
 			g.resetTransform();
 			g.fillRect(0, 0, container.getWidth() + 200, container.getHeight());
 			g.setColor(new Color(0.2f, 0.2f, 0.2f, 0.03f));
@@ -199,6 +268,10 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			mainMenu.setMouseOverColor(Color.orange);
 			exit.render(container, g);
 			exit.setMouseOverColor(Color.orange);			
+		}else if(this.afficheDialog == true) {
+			if(dialogue != null){
+				dialogue.render(g);
+			}
 		}else {
 			this.hud.render(g);
 		}
@@ -223,16 +296,7 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 			}
 		}
 	}
-	
-	public void bossBulletUpdate(int delta) {
-		for(int i = 0 ; i < 10 ; i ++)
-		{
-			if(tabCheese[i]!=null)
-			{
-				tabCheese[i].update(delta, i);
-			}
-		}
-	}
+
 	
 	public void keyReleased(int key, char c) {
 		//à l'appui sur la touche ECHAP, on quitte le jeu
@@ -244,16 +308,26 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		}
 		if(Input.KEY_E == key)
 			escapeMenu = false; //on reprend la partie
+		if(afficheDialog == true) {
+			if(Input.KEY_SPACE == key) {
+				if(dialogue != null){
+					dialogue.changeMessage();
+				}
+				if(dialogueSave != null){
+					dialogueSave.changeMessage();
+				}
+			}
+		}
 	}
 
 	public int getID() { return id;}
 	
-	public void createRamziProjectile(int directionProjectile) throws SlickException
+	public void createRamziProjectile(int directionProjectile, double vitesseX, double vitesseY) throws SlickException
 	{
 
 		if(this.attaqueDistanceCooldown == -1){
 			if(this.bullet!= null){
-				this.bullet.add(new Bullet(this, map1, player,directionProjectile));
+				this.bullet.add(new Bullet(this, this.currentLevel.getMap(), player,directionProjectile, vitesseX, vitesseY));
 				this.bullet.get(this.bullet.size()-1).init();
 			}
 			this.attaqueDistanceCooldown = 0;
@@ -266,26 +340,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		//this.projectile = null;
 	}
 	
-	public void createMadMouseCheese(MadMouse mm, int delta, int nbCheese)
-	{
-		//System.out.println("WorldMap : " + madMouse.getX() + ", " + madMouse.getY());
-		tabCheese = new ProjCheese[10];
-		for(int i = 1; i<=nbCheese; i++){
-			System.out.println("WorldMap mm.getX() = "+mm.getX());
-			tabCheese[i]= new ProjCheese(this.player,mm);
-		}
-	}
 
-	public void destroyMadMouseCheese(int i)
-	{
-		tabCheese[i] = null;
-	}
 //	public void bossAtk(int e){
 //		bossAtkState = e;
 //	}
 	
 	public void componentActivated(AbstractComponent source) {
-		System.out.println(source);
 		if(source == resume) {
 			escapeMenu = false;
 		} else if(source == mainMenu) {
@@ -295,8 +355,12 @@ public class WorldMap extends BasicGameState implements ComponentListener {
 		}
 	}
 	
-	public void setYouWin(boolean bool) {this.youWin = bool;}
 	public int getEnnemisDebut() { return currentLevel.getNbEnnemisDebut();}
 	public int getEnnemisSauves() {return currentLevel.getNbEnnemisSauves();}
-	public MadMouse getBossLevel() {return currentLevel.getBoss();}	
+	public Boss getBossLevel() {return currentLevel.getBoss();}	
+	public void setFinDePartie(boolean b) {this.finDePartie = b;}	
+	
+	public void updateCurrentLevel(Level nextLevel) {
+		this.currentLevel = nextLevel;
+	}
 }

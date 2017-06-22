@@ -39,25 +39,23 @@ public class Bullet
 	
 	private void setInitCoordonneeProjectile()
 	{
-		this.xProjectile = player.getX();
-		this.yProjectile = player.getY();
 		switch(directionProjectile)
 		{
 		case 0 : 
-			this.xProjectile = player.getX()-16;
-			this.yProjectile = player.getY()-32;
+			this.xProjectile = player.getX();
+			this.yProjectile = player.getY() + 16;
 			break;
 		case 1 :
-			this.xProjectile = player.getX()+16;
-			this.yProjectile = player.getY()-16;
-			break;
-		case 2 : 
-			this.xProjectile = player.getX()-16;
+			this.xProjectile = player.getX() + 16;
 			this.yProjectile = player.getY();
 			break;
+		case 2 : 
+			this.xProjectile = player.getX();
+			this.yProjectile = player.getY() + 16;
+			break;
 		case 3 :
-			this.xProjectile = player.getX()-32;
-			this.yProjectile = player.getY()-16;
+			this.xProjectile = player.getX() - 16;
+			this.yProjectile = player.getY();
 			break;
 			
 		}
@@ -220,9 +218,9 @@ public class Bullet
 			
 			Graphics ombre = new Graphics();
 			ombre.setColor(new Color(0,0,0, 0.5f));
-			ombre.fillOval(xProjectile+12, yProjectile+16, 20, 20); //création d'une ombre
+			ombre.fillOval(xProjectile, yProjectile, 20, 20); //création d'une ombre
 			
-			g.drawAnimation(animationsBullet[0], xProjectile, yProjectile);
+			g.drawAnimation(animationsBullet[0], xProjectile-16, yProjectile-16);
 			
 			projectile = g;
 			

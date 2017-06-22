@@ -12,6 +12,8 @@ public class WindowGame extends StateBasedGame {
 	public static final int STARTMENU = 0;
 	public static final int WORLDMAP = 1; 
 	public static final int OPTIONS = 2;
+	public static final int INTRO= 3;
+	
 	private static AppGameContainer app;
 	
 	public WindowGame()
@@ -19,7 +21,8 @@ public class WindowGame extends StateBasedGame {
 		super("Ramzi & The Scientists");
 		this.addState(new Menu(STARTMENU));
 		this.addState(new WorldMap(WORLDMAP));
-		this.addState(new Options(OPTIONS));		
+		this.addState(new Options(OPTIONS));	
+		this.addState(new Intro(INTRO));		
 	}
 	
 	/**
@@ -28,8 +31,9 @@ public class WindowGame extends StateBasedGame {
 	public void initStatesList(GameContainer container) throws SlickException {
 		this.getState(STARTMENU).init(container, this);
 		this.getState(WORLDMAP).init(container, this);
+		this.getState(INTRO).init(container, this);
 		//au lancement du jeu, on arrive sur le menu
-		this.enterState(STARTMENU);
+		this.enterState(INTRO);
 
 	}
 

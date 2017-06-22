@@ -5,15 +5,19 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.tiled.TiledMap;
 
 public abstract class Ennemi {
 
+	private WorldMap worldMap;
+	protected Ramzi player;
+	protected int idEnnemi;
 	protected float x, y;
 	protected int direction;
 	protected boolean moving = false;
-	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleMouse = new Animation[3];
+	protected Animation[] animations = new Animation[8], dyingSmoke = new Animation[1], littleEnnemi = new Animation[3];
 	private TiledMap map;
 	protected int distanceVue;
 	protected int ptVie;
@@ -22,14 +26,19 @@ public abstract class Ennemi {
 	protected Rectangle hitbox;
 	//timer d'animation effet
 	private int smokeToken = 0;
-	protected int littleMouseDirection;
-	private boolean littleMouseRunning = false;
-	private float littleMouseX, littleMouseY; 
+	protected int ennemiDirection;
+	private boolean ennemiRunning = false;
+	private float ennemiX, ennemiY; 
+	protected boolean collisionPerso = false;
+	protected String whereIsCollisionPerso = "";
 
-	public Ennemi(TiledMap map, float x, float y) {
+	public Ennemi(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
+		this.worldMap = worldmap;
 		this.map = map;
+		this.player = player;
 		this.x = x;
 		this.y = y;
+		this.idEnnemi = idEnnemi;
 	}
 	
 	public void init() throws SlickException
@@ -52,18 +61,32 @@ public abstract class Ennemi {
 
 		return animations;
 	}	
+
+	public Animation[] prepareAnimationRabbit(String srcSprite) throws SlickException {
+		SpriteSheet spriteEnnemis = new SpriteSheet("ressources/sprites/" + srcSprite, 64, 64);
+		this.animations[0] = loadAnimation(spriteEnnemis, 0, 1, 3);
+		this.animations[1] = loadAnimation(spriteEnnemis, 0, 1, 0);
+		this.animations[2] = loadAnimation(spriteEnnemis, 0, 1, 1);
+		this.animations[3] = loadAnimation(spriteEnnemis, 0, 1, 2);
+		this.animations[4] = loadAnimation(spriteEnnemis, 1, 6, 3);
+		this.animations[5] = loadAnimation(spriteEnnemis, 1, 6, 0);
+		this.animations[6] = loadAnimation(spriteEnnemis, 1, 6, 1);
+		this.animations[7] = loadAnimation(spriteEnnemis, 1, 6, 2);
+		return animations;
+	}
 	
 	public Animation[] prepareSmokeAnimation() throws SlickException {
 		SpriteSheet spriteSmoke = new SpriteSheet("ressources/sprites/Effets/Disparition_Ennemis.png", 98, 128);
 		this.dyingSmoke[0] = loadAnimation(spriteSmoke, 0, 12, 0);
+		this.dyingSmoke[0].setLooping(false);
 		return dyingSmoke;
 	}
 	
-	public Animation[] prepareLittleMouseAnimation() throws SlickException {
-		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/Souris_Sauvee.png", 64, 64);
-		this.littleMouse[1] = loadAnimation(spriteLittle, 0, 3, 0);
-		this.littleMouse[2] = loadAnimation(spriteLittle, 1, 3, 1);
-		return littleMouse;
+	public Animation[] prepareLittleEnnemiAnimation(String srcSprite) throws SlickException {
+		SpriteSheet spriteLittle = new SpriteSheet("ressources/sprites/PNJ/" + srcSprite, 64, 64);
+		this.littleEnnemi[1] = loadAnimation(spriteLittle, 0, 3, 0);
+		this.littleEnnemi[2] = loadAnimation(spriteLittle, 1, 3, 1);
+		return littleEnnemi;
 	}
 
 	private Animation loadAnimation(SpriteSheet spriteSheet, int startX, int endX, int y) {
@@ -83,17 +106,17 @@ public abstract class Ennemi {
 		if(!isSaved()) {
 			createShadow(g);
 		}else {
-			this.escapeLittleMouse(g);
+			this.escapeLittleEnnemi(g);
 		}
 
 	}
 	
-	private void escapeLittleMouse(Graphics g)
+	private void escapeLittleEnnemi(Graphics g)
 	{
-		if(!littleMouseRunning){
-			this.popLittleMouse(g);
+		if(!ennemiRunning){
+			this.popLittleEnnemi(g);
 		} else {
-			this.runLittleMouse(g);
+			this.runLittleEnnemi(g);
 		}
 		g.drawAnimation(dyingSmoke[0], x-32, y-90);
 		smokeToken++;
@@ -107,25 +130,25 @@ public abstract class Ennemi {
 		g.drawAnimation(animations[direction + (moving ? 4 : 0)], x - 32, y - 60);
 	}
 	
-	private void popLittleMouse(Graphics g)
+	private void popLittleEnnemi(Graphics g)
 	{
-		littleMouseX = x - 20;
-		littleMouseY = y - 50;
-		g.drawAnimation(littleMouse[littleMouseDirection], littleMouseX, littleMouseY);		
-		littleMouseRunning = true;
+		ennemiX = x - 20;
+		ennemiY = y - 50;
+		g.drawAnimation(littleEnnemi[ennemiDirection], ennemiX, ennemiY);		
+		ennemiRunning = true;
 	}
 	
-	private void runLittleMouse(Graphics g)
+	private void runLittleEnnemi(Graphics g)
 	{
-		switch(littleMouseDirection){
+		switch(ennemiDirection){
 			case 1 :
-				littleMouseX += 5;
+				ennemiX += 5;
 				break;
 			case 2 :
-				littleMouseX -= 5;
+				ennemiX -= 5;
 				break;
 		}
-		g.drawAnimation(littleMouse[littleMouseDirection], littleMouseX, littleMouseY);
+		g.drawAnimation(littleEnnemi[ennemiDirection], ennemiX, ennemiY);
 	}
 	
 	public boolean estAMetamorphoser(){
@@ -159,7 +182,53 @@ public abstract class Ennemi {
 			return true;
 		}
 	}
+	
+	public boolean isCollisionPersos()
+	{
+		collisionPerso = false;
+		for(int i = 0 ; i < WorldMap.tabEnnemi.size() ; i++){
+			if(WorldMap.tabEnnemi.get(i)!=null)
+			{
+				if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinX() +3,
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinY() +3 ) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMinX()+3,
+							this.player.calcZoneCollision().getMinY()+3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "topleft";
+				} else if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxX() -3,
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinY()+3) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMaxX()-3,
+								this.player.calcZoneCollision().getMinY()+3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "topright";
+				} else if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMinX()+3, 
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxY()-3) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMinX()+3,
+								this.player.calcZoneCollision().getMaxY()-3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "botleft";
+				} else if(calcZoneCollision().contains(WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxX()-3, 
+						WorldMap.tabEnnemi.get(i).calcZoneCollision().getMaxY()-3) ||
+						calcZoneCollision().contains(this.player.calcZoneCollision().getMaxX()-3,
+								this.player.calcZoneCollision().getMaxY()-3))
+				{
+					collisionPerso = true;
+					whereIsCollisionPerso = "botright";
+				}
+			}
+		}
+		return collisionPerso;
+	}
+	
+	public Circle calcZoneCollision()
+	{
+		return new Circle(this.x-6, this.y-6, 12);
 
+	}
+	
 	protected float getFuturX(int delta, double vitesse)
 	{
 
@@ -201,7 +270,7 @@ public abstract class Ennemi {
 
 	}
 	
-	private float getDiffPosition(float playerPosition, float ennemiPosition)
+	protected float getDiffPosition(float playerPosition, float ennemiPosition)
 	{
 		if (playerPosition > ennemiPosition)
 		{
@@ -261,13 +330,48 @@ public abstract class Ennemi {
 	  			x+=2;
 	  		}
 
-	  	} else {
+	  	} else if (isCollisionPersos()){
+	  		knockBack(whereIsCollisionPerso);
+	  	}else {
 	 
 			x += Math.cos(angle) * vitesse;
 			y += Math.sin(angle) * vitesse;
 		}
 	}
 
+	protected void knockBack(String whichCollision)
+	{
+  		switch(whereIsCollisionPerso) {
+  		case "topleft" :
+  			x -= 2;
+  			y -= 2;
+  			break;
+  		case "topright" :
+  			x += 2;
+  			y -= 2;
+  			break;
+  		case "botleft" :
+  			x -= 2;
+  			y += 2;
+  			break;
+  		case "botright" :
+  			x += 2;
+  			y += 2;
+  			break;
+  		}
+	}
+	
+	protected void canHitRamzi()
+	{
+		if(living)
+		{
+		  	if(this.calcZoneCollision().intersects(this.player.calcZoneCollision()))
+		  	{
+		  		this.player.takeDamage(2);
+		  	}
+		}
+	}
+	
 	public float getX() {
 		return x;
 	}
@@ -311,6 +415,11 @@ public abstract class Ennemi {
 	}
 	
 	private void death(){
+		if((int)(Math.random()*8+1) == 1){
+			try {
+				worldMap.prepareDropHeart(this.x, this.y);
+			} catch (SlickException e) {}
+		}
 		living=false;
 	}
 	

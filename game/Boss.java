@@ -1,3 +1,5 @@
+package game;
+
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Image;
@@ -19,9 +21,9 @@ public class Boss
 	protected int nbColonne = 9;
 	protected boolean living = true;
 	protected String srcSpriteBoss;
+	protected String nomBoss;
 	
 	/*  Collision  */
-	protected Circle zoneCollision;
 	protected boolean collisionPerso = false;	
 	protected String whereIsCollisionPerso = "";
 	
@@ -30,6 +32,13 @@ public class Boss
 	protected int bossTimer = 0; // Timer qui permet de déclencher les différentes attaques
 	
 	public void init() throws SlickException{}
+	
+	public Boss(TiledMap map, Ramzi player, float xSpawn, float ySpawn){
+		this.map = map;
+		this.player = player;
+		this.x = xSpawn;
+		this.y = ySpawn;
+	}
 	
 	public Animation[] prepareAnimation() throws SlickException {
 
@@ -54,19 +63,16 @@ public class Boss
 		return animation;
 	}
 
-	
 	public void render() throws SlickException{}
 	
 	public void update() throws SlickException{}
 	
 	protected void canHitRamzi()
 	{
-		
-	  	if(calcZoneCollision().intersects(this.player.calcZoneCollision()))
+	  	if(this.calcZoneCollision().intersects(this.player.calcZoneCollision()))
 	  	{
-	  		this.player.takeDamage(2);
+	  		this.player.takeDamage(3);
 	  	}
-		
 	}
 	
 	public boolean isCollision(float x, float y) 
@@ -89,22 +95,22 @@ public class Boss
 	{
 		collisionPerso = false;
 		calcZoneCollision();
-		if(zoneCollision.contains(this.player.calcZoneCollision().getMinX()+3,
+		if(this.calcZoneCollision().contains(this.player.calcZoneCollision().getMinX()+3,
 					this.player.calcZoneCollision().getMinY()+3))
 		{
 			collisionPerso = true;
 			whereIsCollisionPerso = "topleft";
-		} else if(zoneCollision.contains(this.player.calcZoneCollision().getMaxX()-3,
+		} else if(this.calcZoneCollision().contains(this.player.calcZoneCollision().getMaxX()-3,
 						this.player.calcZoneCollision().getMinY()+3))
 		{
 			collisionPerso = true;
 			whereIsCollisionPerso = "topright";
-		} else if(zoneCollision.contains(this.player.calcZoneCollision().getMinX()+3,
+		} else if(this.calcZoneCollision().contains(this.player.calcZoneCollision().getMinX()+3,
 						this.player.calcZoneCollision().getMaxY()-3))
 		{
 			collisionPerso = true;
 			whereIsCollisionPerso = "botleft";
-		} else if(zoneCollision.contains(this.player.calcZoneCollision().getMaxX()-3,
+		} else if(this.calcZoneCollision().contains(this.player.calcZoneCollision().getMaxX()-3,
 						this.player.calcZoneCollision().getMaxY()-3))
 		{
 			collisionPerso = true;
@@ -137,11 +143,8 @@ public class Boss
 	}
 	
 	public Circle calcZoneCollision()
-	{
-		zoneCollision = new Circle(this.x, this.y, 24);
-		
-		return zoneCollision;
-
+	{	
+		return new Circle(this.x, this.y, 24);
 	}
 	
 	private float getDiffPosition(float playerPosition, float ennemiPosition)
@@ -156,27 +159,34 @@ public class Boss
 		}
 	}
 	
-	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {
+	protected int setDirectionSuivrePlayer()
+	{
 		float diffX, diffY;
-
+		int newDirection = 0;
 		diffX = getDiffPosition(player.getX(), this.x);
 		diffY = getDiffPosition(player.getY(), this.y);
-
 		if (diffX > diffY) {
 			if (player.getX() > this.x){
-				setDirection(3);
+				newDirection =  3;
 			}
 			if (player.getX() < this.x){
-				setDirection(1);
+				newDirection =  1;
 			}
 		} else {
 			if (player.getY() > this.y){
-				setDirection(2);
+				newDirection =  2;
 			}
 			if (player.getY() < this.y){
-				setDirection(0);
+				newDirection =  0;
 			}
 		}
+		return newDirection;
+	}
+	
+	public void suivrePlayer(Ramzi player, double vitesse, int delta, boolean collision) {
+
+
+		setDirection(setDirectionSuivrePlayer());
 		seDeplace(player.getX(), player.getY(), collision, vitesse);
 	}
 
@@ -208,9 +218,8 @@ public class Boss
 	  		knockBack(whereIsCollisionPerso);
 	  		
 	  	} else {
-	 
-			x += Math.cos(angle) * vitesse;
-			y += Math.sin(angle) * vitesse;
+			this.x += Math.cos(angle) * vitesse;
+			this.y += Math.sin(angle) * vitesse;
 		}
 	}	
 	
@@ -252,6 +261,7 @@ public class Boss
 	}
 
 	public void takeDamage(int dmg){
+		System.out.println("Aïe !");
 		this.ptVie-=dmg;
 		if(this.ptVie<=0){
 			this.death();
@@ -280,5 +290,10 @@ public class Boss
 		
 	public int getMaxPv(){
 		return this.maxPv;
+	}
+	
+	public String getBossName()
+	{
+		return nomBoss;
 	}
 }

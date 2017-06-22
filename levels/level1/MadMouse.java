@@ -1,5 +1,8 @@
 package levels.level1;
 import game.*;
+import levels.Level;
+import levels.level2.Level2;
+
 import java.awt.Rectangle;
 
 import org.newdawn.slick.Animation;
@@ -9,11 +12,12 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Vector2f;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 
-public class MadMouse
+public class MadMouse extends Boss
 {
 	private TiledMap map;
 	private Ramzi player;
@@ -24,30 +28,32 @@ public class MadMouse
 	private int action = 0;
 	private int cooldownAttaqueCAC = 0;
 	private int bossTimer = 0; // Timer qui permet de déclencher les différentes attaques
+	private int attaqueDistTimer = 0;
 	private int attaqueCACTimer = 0; // Timer qui permet de déclencher au bout d'un certain temps l'attaque CàC
 	private int attaqueCACState = 0; // Etat de l'attaque au CàC
 	private int prepareAttaqueState = 0;
 	private Color atkClr = new Color(Color.transparent);
-	private int atkDistState=0;
-	private int atkDistUpdate=0;
-	private Rectangle fromage = null;
-	private int timerFromage = 0;
-	private float xDiff, yDiff, xScale, yScale;
 	Vector2f pos;
 	Vector2f dir;
 	private String srcMadMouse = "madMouse";
 	private int maxPv;
 	private int ptVie;
 	private boolean living = true;
+	private Level1 level;
 	
-	public MadMouse(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn)
+	private boolean enrage = false;
+	
+	public MadMouse(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn, Level1 level)
 	{
+		super(map, player, xMadMouseSpawn, yMadMouseSpawn);
 		this.map = map;
 		this.player = player;
 		this.x = xMadMouseSpawn;
 		this.y = yMadMouseSpawn;
-		this.ptVie = 100;
-		this.maxPv = 100;
+		this.ptVie = 20;
+		this.maxPv = 20;
+		this.level = level;
+		super.nomBoss = "MadMouse";
 	}
 	
 	public int getMaxPv(){
@@ -109,25 +115,8 @@ public class MadMouse
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException
 	{
 		realiserAction(delta);
-		
-		/*
-		ATTAQUE A DISTANCE
-		
-		switch(atkDistState){
-		case 0 : break;
-		case 1 :
-			//this.throwCheese();
-			System.out.println("MM : " + x + ", " + y);
-	//		wp.createMadMouseCheese(this, delta, 1);
-			atkDistState = 0;			
-			break;
-		}
-		if(atkDistUpdate==1){
-			throwCheese();
-		}
-		
-		*/
-		
+		canHitRamzi();
+				
 		if(attaqueCACState!=1){
 			if(cooldownAttaqueCAC==0){
 				bossTimer = (int)(Math.random() * (150-50))+50;
@@ -139,6 +128,11 @@ public class MadMouse
 				cooldownAttaqueCAC=0;
 			}
 		}
+		
+		if(this.ptVie <= this.maxPv/2 && !this.enrage){
+			this.enrage = true;
+		}
+		
 	}
 	
 	private void realiserAction(int delta)
@@ -159,11 +153,13 @@ public class MadMouse
 			this.prepareAttaqueCAC();
 			break;
 		case 3 :
-			atkDistState = 1;
-			System.out.println("Lancer de fromHache");
-			action=1;
+			this.prepareAttaqueDistance();
 			break;
 		}
+	}
+
+	private void tirerFromage(){
+		this.level.createMadMouseCheese(this.direction);
 	}
 	
 	private void animateAttaqueCACbyTimer(Graphics g)
@@ -217,25 +213,25 @@ public class MadMouse
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[0], x-216, y-250);
 			
-			g.resetTransform();
+			//g.resetTransform();
 			attaquerCAC();
 			break;
 		case 45 :
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[1], x-216, y-250);
-			g.resetTransform();
+			//g.resetTransform();
 			attaquerCAC();
 			break;
 		case 46 :
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[2], x-216, y-250);
-			g.resetTransform();
+			//g.resetTransform();
 			attaquerCAC();
 			break;
 		case 47 :
 			g.rotate(x, y, rotation);
 			g.drawAnimation(animationsAttaque[3], x-216	, y-250);
-			g.resetTransform();
+			//g.resetTransform();
 			attaquerCAC();
 			break;
 		case 50 :
@@ -275,6 +271,7 @@ public class MadMouse
 		g.setColor(new Color(0, 0, 0, 0.5f));
 		g.fillOval(x - 32, y - 16, 64, 32); // création d'une ombre
 		
+		
 		if(this.prepareAttaqueState >1 && this.prepareAttaqueState <45)
 		{
 			if(this.prepareAttaqueState<20)
@@ -296,67 +293,7 @@ public class MadMouse
 		}
 		animateAttaqueCACbyTimer(g);
 	}
-	
-	public boolean isCollision(float x, float y) 
-	{
-		int tileW = map.getTileWidth();
-		int tileH = map.getTileHeight();
-		int collisionLayer = this.map.getLayerIndex("collision");
-		Image tile = this.map.getTileImage((int) x / tileW, (int) y / tileH, collisionLayer);
-		boolean collision = tile != null;
-		if (collision)
-		{
-			Color color = tile.getColor((int) x % tileW, (int) y % tileH);
-			collision = color.getAlpha() > 0;
-		}
-		
-		return collision;
-	}
-	/*
-	private void throwCheese(){
-		if(fromage==null){
-			if(player.getX() > x)
-				xScale = player.getX();
-			else
-				xScale = -player.getX();
-			if(player.getY() > y)
-				yScale = player.getY();
-			else
-				yScale = -player.getY();
-			
-			fromage = new Rectangle();
-			fromage.setSize(20,20);
-			fromage.setLocation((int)x-10,(int)y-10);
-			
-			pos = new Vector2f(x,y);
-			dir = new Vector2f(xScale, yScale);
-			
-//			xDiff = x - player.getX();
-//			yDiff = y - player.getY();
-//			xScale = xDiff / 150;
-//			yScale = yDiff / 150;
-			timerFromage++;
-			atkDistUpdate = 1;
-		} else {
-			if(timerFromage>=150){
-				fromage = null;
-				timerFromage = 0;
-				atkDistUpdate = 0;
-			} else {
-				Vector2f realSpeed = dir.copy();
-				realSpeed.scale(1/1000.0f);
-				pos.add(realSpeed);
-				timerFromage ++;
-				
-				fromage.setLocation((int)(pos.getX()), (int)(pos.getY()));
-				timerFromage++;
-				if(fromage.contains(this.player.getX(), this.player.getY())){
-					this.player.takeDamage(6);
-				}
-			}
-		}
-	}
-	*/
+
 	private void prepareAttaqueCAC() {
 		attaqueCACTimer++;
 		prepareAttaqueState++;
@@ -364,6 +301,16 @@ public class MadMouse
 		if(attaqueCACTimer>=50)
 		{
 			attaquerCAC();
+		}
+	}
+
+	private void prepareAttaqueDistance() {
+		attaqueDistTimer++;
+		if(attaqueDistTimer>=20)
+		{
+			action=1;
+			tirerFromage();
+			attaqueDistTimer = 0;
 		}
 	}
 	
@@ -449,8 +396,13 @@ public class MadMouse
 	  	{
 	  		ifCollision(angle, vitesse);
 	  	} else {
-			x += Math.cos(angle) * vitesse;
-			y += Math.sin(angle) * vitesse;
+	  		if(this.enrage){
+				x += (Math.cos(angle) * vitesse)*3;
+				y += (Math.sin(angle) * vitesse)*3;
+	  		} else {
+				x += Math.cos(angle) * vitesse;
+				y += Math.sin(angle) * vitesse;
+	  		}
 		}
 	}
 	
@@ -468,7 +420,7 @@ public class MadMouse
 			this.death();
 	}
 	
-	private void death(){
+	protected void death(){
 		living=false;
 	}
 	
@@ -518,6 +470,9 @@ public class MadMouse
 	{
 		return this.y;
 	}
-
+	
+	public boolean isEnrage(){
+		return this.enrage;
+	}
 }
 

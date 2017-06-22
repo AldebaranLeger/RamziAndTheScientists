@@ -25,7 +25,7 @@ public class Hud {
 	private static final Color CPT_ENNEMI_COLOR = new Color(31, 31, 109);
 	private static final int BAR_WIDTH = 175;
 	private static final int BAR_HEIGHT = 31;
-	private Image playerBars, playerItems, bossBar;
+	private Image playerBars, playerItems, bossBar, bossBar2;
 	private Ramzi player;
 	private int playerMaxHp, bossMaxHp, currentBossHp;
 	private WorldMap worldMap;
@@ -46,13 +46,22 @@ public class Hud {
 		//annule la caméra car le hud est fixe
 		g.resetTransform();
 		renderEnnemiBar(g);
-		if(this.currentBossHp!=0) {
+		if(this.currentBossHp!=0 && this.currentBossHp > 0) {
 			renderLifeBossBar(g);
-			g.drawImage(this.bossBar, 180, 340);
+			if(worldMap.getBossLevel().getBossName().equals("MadMouse")){
+				g.drawImage(this.bossBar, 180, 340);
+			}else if(worldMap.getBossLevel().getBossName().equals("BunNysterio")){
+				g.drawImage(this.bossBar2, 180, 340);
+			}
 		}
 		renderLifePlayerBar(g);
 		drawHud(g);
 		//renderAtqBar(g);
+	}
+	
+	public void update(int delta)
+	{
+		this.maxEnnemis = worldMap.getEnnemisDebut();
 	}
   
 	private void playerManagement() throws SlickException{
@@ -60,6 +69,7 @@ public class Hud {
 		this.playerBars = new Image("ressources/hud/hud_2.png");
 		this.playerItems = new Image("ressources/hud/hud.png");
 		this.bossBar = new Image("ressources/hud/Lifebar_Boss_V2.png");
+		this.bossBar2 = new Image("ressources/hud/Lifebar_Boss_BunnySterio.png");
 	}
 	
 	private void renderLifeBossBar(Graphics g) {
@@ -82,7 +92,7 @@ public class Hud {
 	private void renderEnnemiBar(Graphics g2) {
 		g2.setColor(CPT_ENNEMI_COLOR);
 		//jauge qui diminue à chaque ennemi sauvé
-		g2.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.worldMap.getEnnemisSauves()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
+		g2.fillRect(CPT_ENNEMI_BAR_X, CPT_ENNEMI_BAR_Y, (((float)this.maxEnnemis-(float)this.worldMap.getEnnemisDebut()))*BAR_WIDTH / (float)this.maxEnnemis , BAR_HEIGHT);
 	}
   
 	private void drawHud(Graphics g) {

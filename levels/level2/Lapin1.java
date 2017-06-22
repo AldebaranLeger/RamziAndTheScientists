@@ -1,46 +1,49 @@
-package levels.level1;
-import game.*;
-import levels.Level;
+package levels.level2;
 
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.tiled.TiledMap;
 
-public class Souris2 extends Ennemi {
+import game.*;
 
-	double vitesseDeplacement;
-	private Ramzi player;
+/*Lapin 'charge' (immobiles puis poursuit le joueur quand ce dernier est dans son champ de vision)*/
+public class Lapin1 extends Ennemi {
 	
-	public Souris2(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
+	private Ramzi player;
+	protected double vitesseDeplacement;
+
+	public Lapin1(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
 		super(worldmap, map, player, x, y, idEnnemi);
-		this.player = player;
-		vitesseDeplacement = (int)(Math.random()*(4-2)+2);
-		super.ptVie = 4;
+		super.ptVie = 5;
 		super.ennemiDirection = (int) (Math.random()*(3-1)+1);
+		this.player = player;
+		this.vitesseDeplacement = 1.5;
 	}
-
+	
 	public void init() throws SlickException {
-		animations = super.prepareAnimation("souris_level1.png");
+		animations = super.prepareAnimationRabbit("lapins_level2.png");
 		dyingSmoke = super.prepareSmokeAnimation();
-		littleEnnemi = super.prepareLittleEnnemiAnimation("Souris_Sauvee.png");
+		littleEnnemi = super.prepareLittleEnnemiAnimation("lapin-sauve.png");
 		super.setRandomDirection();
-		super.calcZoneCollision();
 	}
-
-	public void update(int delta) throws SlickException
-	{
-		
+	
+	public void update(int delta) {
 		float futurX = getFuturX(delta, 0.5);
 		float futurY = getFuturY(delta, 0.5);
 		float[] vueSouris = super.getVueEnnemi(distanceVue);
-
 		distanceVue = getDistanceVue();
 
-		this.shouldMove(vueSouris);
-
-		this.shouldAvoidCollision(delta, futurX, futurY);
 
 		super.canHitRamzi();
-		//super.calcHitBox();
+		this.accelerer();
+		this.shouldMove(vueSouris);
+		this.shouldAvoidCollision(delta, futurX, futurY);
+	}
+	
+	/*le lapin accélère en suivant Ramzi*/
+	private void accelerer() {
+		if(this.vitesseDeplacement < 9 && super.moving) {
+			this.vitesseDeplacement *= 1.05;
+		}
 	}
 	
 	private int getDistanceVue()
@@ -77,7 +80,6 @@ public class Souris2 extends Ennemi {
 				super.suivrePlayer(player, vitesseDeplacement, delta, true);
 			}
 		}
-		
-		//super.calcHitBox();
 	}
+
 }

@@ -11,13 +11,16 @@ import org.newdawn.slick.tiled.TiledMap;
 public class BunNysterio extends Boss
 {
 	private int action = 1;
-	private boolean attaquePrimaireEnCours = false;
-	private boolean listPicsVide = true;
 	private List<AttaqueBunNysterio> attaqueBunNysterio = new ArrayList<AttaqueBunNysterio>();
 	private int nbPicsTotal;
 	private int nbPicsActuel = 0;
 	private float xPic, yPic;
+	private boolean attaquePrimaireEnCours = false;
+	private boolean attaqueTunnelEnCours = false;
 	private int timerIntervalPics = 0;
+	private int timerTunnel = 0;
+	private int pasDeplacementTunnelX = 10;
+	private int pasDeplacementTunnelY = 10;
 	
 	
 	public BunNysterio(TiledMap map, Ramzi player, float xMadMouseSpawn, float yMadMouseSpawn)
@@ -26,7 +29,7 @@ public class BunNysterio extends Boss
 		super.player = player;
 		super.x = xMadMouseSpawn;
 		super.y = yMadMouseSpawn;
-		super.maxPv = 5;
+		super.maxPv = 100;
 		super.ptVie = maxPv;
 		super.srcSpriteBoss = "bunNysterio";
 		super.nbColonne = 8;
@@ -46,16 +49,14 @@ public class BunNysterio extends Boss
 		
 		g.drawAnimation(animations[direction + (4)], x - 64, y - 120);
 			
-		if(listPicsVide == false)
+		for(int i = 0 ; i < attaqueBunNysterio.size() ; i++)
 		{
-			for(int i = 0 ; i < attaqueBunNysterio.size() ; i++)
+			if(this.attaqueBunNysterio.get(i) !=null)
 			{
-				if(this.attaqueBunNysterio.get(i) !=null)
-				{
-					this.attaqueBunNysterio.get(i).render(g);
-				}
+				this.attaqueBunNysterio.get(i).render(g);
 			}
 		}
+		
 	}
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException
@@ -67,13 +68,12 @@ public class BunNysterio extends Boss
 			bossTimer = (int)(Math.random() * (150-50))+50;
 		}
 		cooldownAttaque ++ ;
-		//System.out.println("cooldownAttaqueCAC : " + cooldownAttaqueCAC);
 		if(cooldownAttaque>=bossTimer){
 			action=(int)(Math.random() * (4-2))+2;
 			cooldownAttaque=0;
 		}
 		
-		if(attaquePrimaireEnCours && listPicsVide == false)
+		if(attaquePrimaireEnCours)
 		{
 			this.timerIntervalPics ++;
 			this.attaquerPrimaire();
@@ -86,10 +86,17 @@ public class BunNysterio extends Boss
 				}
 			}
 		}
-		
-		for(int i = 0 ; i < attaqueBunNysterio.size() ; i++)
+		if(attaqueTunnelEnCours)
 		{
-			System.out.println(this.attaqueBunNysterio.get(i));
+			timerTunnel++;
+			if(timerTunnel > 20)
+			{
+				attaqueTunnels();
+				if(timerTunnel > 200)
+				{
+					arreterTunnel();
+				}
+			}
 		}
 		
 	}
@@ -115,31 +122,59 @@ public class BunNysterio extends Boss
 			}
 			break;
 		case 2 : 
-			listPicsVide = false;
 			attaquePrimaireEnCours = true;
 			//xPic = this.x;
 			//yPic = this.y;
 			break;
 		case 3 :
-			attaqueTunnels();
+			//attaqueTunnelEnCours = true;
+			action =1;
 			break;
 		}
 	}
 	
 	private void attaqueTunnels()
 	{
-		
+		if(isCollision(x+10, y+10)
+		|| isCollision(x+10, y-10)
+		|| isCollision(x-10, y+10)
+		|| isCollision(x-10, y-10))
+		{
+			if(isCollision(x+15, y+10) || isCollision(x+15, y-10))
+			{
+				pasDeplacementTunnelX = -10;
+			}
+			else if(isCollision(x-15, y+10) || isCollision(x-15, y-10))
+			{
+				pasDeplacementTunnelX = +10;
+			}
+			else if(isCollision(x+10, y+15) || isCollision(x-10, y+15))
+			{
+				pasDeplacementTunnelY = -10;
+			}
+			else if(isCollision(x+10, y-15) || isCollision(x-10, y-15))
+			{
+				pasDeplacementTunnelY = +10;
+			}
+		}
+		x += pasDeplacementTunnelX;
+		y += pasDeplacementTunnelY;
+	}
+	
+	private void arreterTunnel()
+	{
+		attaqueTunnelEnCours = false;
+		timerTunnel = 0;
 		action = 1;
 	}
 	
 	private void attaquerPrimaire()
-	{		
-		nbPicsTotal = (int)(Math.random() * (15-10)) + 10;
-
-		if(timerIntervalPics % 5 == 0)
+	{	if(nbPicsTotal == 0){	
+			nbPicsTotal = (int)(Math.random() * (20-10)) + 10;
+		}
+		if(timerIntervalPics % 6 == 0 && nbPicsActuel < nbPicsTotal)
 		{
 			placerPics();
-			System.out.println(direction + " --- " + xPic + " / " + yPic);
 			attaqueBunNysterio.add(new AttaqueBunNysterio(player, xPic, yPic, direction));
 			nbPicsActuel++;
 		}
@@ -208,16 +243,12 @@ public class BunNysterio extends Boss
 	}
 	
 	private void destroyPics()
-	{
-		System.out.println("destroyPics()");
-		for(int i = 0 ; i < attaqueBunNysterio.size() ; i++)
-		{
-			xPic = 0;
-			yPic = 0;
-			this.attaqueBunNysterio.remove(i);
-			this.listPicsVide = true;
-			
-		}
+	{	
+		nbPicsTotal = 0;
+		xPic = 0;
+		yPic = 0;
+		this.attaqueBunNysterio.clear();			
+		
 	}
 	
 	
