@@ -1,4 +1,6 @@
 package levels;
+import java.util.List;
+
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -9,19 +11,17 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.tiled.TiledMap;
 
-import game.Ennemi;
-import game.Ramzi;
-import game.WorldMap;
-import levels.level1.MadMouse;
+import game.*;
+import levels.level1.*;
 
 public abstract class Level {
 	
 	protected WorldMap worldMap;
 	protected Ramzi player;
 	protected TiledMap map;
-	protected MadMouse boss; //type variable à changer par la classe mère des boss
-	protected Ennemi[] tabEnnemi;
-	protected int nbEnnemisDebut;
+	protected Boss boss;
+	protected List<Ennemi> tabEnnemi;
+	protected int nbEnnemisDebut, maxEnnemisDebut;
 	protected int nbEnnemisSauves;
 	protected int totalEnnemisSauves;
 	protected boolean bossArrives=false;	
@@ -33,9 +33,9 @@ public abstract class Level {
 	protected boolean inMap = false, inCollision = false, inRamziRayon;
 	protected int tileW, tileH, collisionLayer, mapLayer;
 	protected Animation[] animations = new Animation[1];
-	protected Image closedTreasure;
+	protected Image closedTreasure, ladder;
 	protected Rectangle ladderSquare, treasureSquare;
-	
+
 	public Level(WorldMap worldMap, TiledMap map, Ramzi player){
 		this.worldMap = worldMap;
 		this.map = map;
@@ -57,29 +57,35 @@ public abstract class Level {
 	}
 	
 	public void init(GameContainer container, StateBasedGame stateBasedGame) throws SlickException 
-	{}
+	{
+		
+	}
 	
 	public void render(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException 
-	{}
+	{
+		
+	}
 	
 	public void update(GameContainer container, StateBasedGame stateBasedGame, int delta) throws SlickException
-	{}
+	{
+		
+	}
 	
-	public void setTabEnnemi(Ennemi[] tabEnnemi) {
+	public void setTabEnnemi(List<Ennemi> tabEnnemi) {
 		this.tabEnnemi = tabEnnemi;
 	}
 	
 	public int getNbEnnemisDebut() {
-		return this.nbEnnemisDebut;
+		return this.maxEnnemisDebut;
 	}
 	public int getNbEnnemisSauves() {
-		return this.nbEnnemisSauves;
+		return this.totalEnnemisSauves;
 	}
 	
-	public Ennemi[] getTabEnnemi() {
+	public List<Ennemi> getTabEnnemi() {
 		return this.tabEnnemi;
 	}
 	
 	public TiledMap getMap() { return this.map;	}
-	public MadMouse getBoss() {return this.boss;}
+	public Boss getBoss() {return this.boss;}
 }

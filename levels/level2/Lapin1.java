@@ -11,8 +11,8 @@ public class Lapin1 extends Ennemi {
 	private Ramzi player;
 	protected double vitesseDeplacement;
 
-	public Lapin1(TiledMap map, Ramzi player, float x, float y) {
-		super(map, x, y);		
+	public Lapin1(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
+		super(worldmap, map, player, x, y, idEnnemi);
 		super.ptVie = 5;
 		super.ennemiDirection = (int) (Math.random()*(3-1)+1);
 		this.player = player;

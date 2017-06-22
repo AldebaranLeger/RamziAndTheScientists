@@ -4,6 +4,7 @@ import org.newdawn.slick.tiled.TiledMap;
 
 import game.Ennemi;
 import game.Ramzi;
+import game.WorldMap;
 
 /*Lapins qui se déplace aléatoirement et qui lance des projectiles sur le joueur dès que celui ci est dans son champ de vision*/
 public class Lapin2 extends Ennemi {
@@ -14,8 +15,8 @@ public class Lapin2 extends Ennemi {
 	private Level2 level2;
 	private int bulletTimer = 0; // Timer qui permet de déclencher au bout d'un certain temps le lancer de carottes
 
-	public Lapin2(TiledMap map, Ramzi player, float x, float y, Level2 level2) {
-		super(map, x, y);
+	public Lapin2(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi, Level2 level2) {
+		super(worldmap, map, player, x, y, idEnnemi);
 		super.ptVie = 3;
 		super.ennemiDirection = (int) (Math.random()*(3-1)+1);
 		this.player = player;

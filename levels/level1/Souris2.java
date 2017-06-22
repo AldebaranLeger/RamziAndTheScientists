@@ -1,18 +1,19 @@
 package levels.level1;
 import game.*;
+import levels.Level;
+
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.tiled.TiledMap;
 
-/*Souris qui se dirige vers Ramzi dès que le joueur rentre dans son champ de vision. La souris suit le joueur. */
 public class Souris2 extends Ennemi {
 
 	double vitesseDeplacement;
 	private Ramzi player;
 	
-	public Souris2(TiledMap map, Ramzi player, float x, float y) {
-		super(map, x, y);
+	public Souris2(WorldMap worldmap, TiledMap map, Ramzi player, float x, float y, int idEnnemi) {
+		super(worldmap, map, player, x, y, idEnnemi);
 		this.player = player;
-		vitesseDeplacement = 2;
+		vitesseDeplacement = (int)(Math.random()*(4-2)+2);
 		super.ptVie = 4;
 		super.ennemiDirection = (int) (Math.random()*(3-1)+1);
 	}
@@ -22,18 +23,24 @@ public class Souris2 extends Ennemi {
 		dyingSmoke = super.prepareSmokeAnimation();
 		littleEnnemi = super.prepareLittleEnnemiAnimation("Souris_Sauvee.png");
 		super.setRandomDirection();
+		super.calcZoneCollision();
 	}
 
 	public void update(int delta) throws SlickException
-	{		
+	{
+		
 		float futurX = getFuturX(delta, 0.5);
 		float futurY = getFuturY(delta, 0.5);
 		float[] vueSouris = super.getVueEnnemi(distanceVue);
+
 		distanceVue = getDistanceVue();
 
 		this.shouldMove(vueSouris);
 
 		this.shouldAvoidCollision(delta, futurX, futurY);
+
+		super.canHitRamzi();
+		//super.calcHitBox();
 	}
 	
 	private int getDistanceVue()
@@ -64,9 +71,13 @@ public class Souris2 extends Ennemi {
 		if (moving) {
 			if (!super.isCollision(futurX, futurY)) {
 				super.suivrePlayer(player, vitesseDeplacement, delta, false);
+				// this.x = futurX;
+				// this.y = futurY;
 			} else{
 				super.suivrePlayer(player, vitesseDeplacement, delta, true);
 			}
 		}
+		
+		//super.calcHitBox();
 	}
 }
