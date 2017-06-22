@@ -45,13 +45,20 @@ public class Hud {
 	public void render(Graphics g) {
 		//annule la caméra car le hud est fixe
 		g.resetTransform();
-		renderEnnemiBar(g);
+		if(worldMap.getBossLevel() != null){
+			renderEnnemiBar(g);
+		}
 		if(this.currentBossHp!=0 && this.currentBossHp > 0) {
-			renderLifeBossBar(g);
-			if(worldMap.getBossLevel().getBossName().equals("MadMouse")){
-				g.drawImage(this.bossBar, 180, 340);
-			}else if(worldMap.getBossLevel().getBossName().equals("BunNysterio")){
-				g.drawImage(this.bossBar2, 180, 340);
+			if(worldMap.getBossLevel() != null){
+				renderLifeBossBar(g);
+			}
+			System.out.println(worldMap.getBossLevel());
+			if(worldMap.getBossLevel() != null){
+				if(worldMap.getBossLevel().getBossName().equals("MadMouse")){
+					g.drawImage(this.bossBar, 180, 340);
+				}else if(worldMap.getBossLevel().getBossName().equals("BunNysterio")){
+					g.drawImage(this.bossBar2, 180, 340);
+				}
 			}
 		}
 		renderLifePlayerBar(g);

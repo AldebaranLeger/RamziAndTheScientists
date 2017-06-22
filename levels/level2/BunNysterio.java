@@ -157,8 +157,6 @@ public class BunNysterio extends Boss
 		
 	}
 	
-	
-
 	private void realiserAction(int delta)
 	{
 		float futurX = getFuturX(delta, 1.5);

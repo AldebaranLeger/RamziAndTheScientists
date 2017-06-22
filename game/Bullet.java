@@ -158,8 +158,6 @@ public class Bullet
 
 	public boolean canTouchBoss(Circle damageArea)
 	{
-		System.out.println("damageArea" + damageArea);
-		System.out.println("this.worldMap" + this.worldMap);
 		if(damageArea.intersects(this.worldMap.getBossLevel().calcZoneCollision())){
 			return true;
 		}else{

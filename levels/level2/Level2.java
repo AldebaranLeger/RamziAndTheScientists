@@ -80,7 +80,7 @@ public class Level2 extends Level{
 				else {
 					nbEnnemisSauves++;
 				}
-				if(tabEnnemi.size()==0){
+				if(nbEnnemisDebut==0){
 					tabEnnemi=null;
 					bunNysterio = new BunNysterio(map, player, xEnnemiSauve, yEnnemiSauve); //le boss bunnySterious apparaît aux coordonnées du dernier ennemi sauvé
 				}
@@ -186,7 +186,6 @@ public class Level2 extends Level{
 	public void renderBoss(GameContainer container, StateBasedGame stateBasedGame, Graphics g) throws SlickException {
 		if(bunNysterio!=null && !bossArrives){
 			bossArrives=true;
-			System.out.println("Bun Nysterious apparait.");
 			bunNysterio.init();
 		}
 		if(bossArrives){

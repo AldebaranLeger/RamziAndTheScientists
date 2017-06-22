@@ -137,7 +137,7 @@ public class Level1 extends Level {
 				}
 				
 			}
-			if(tabEnnemi.size()==0){
+			if(nbEnnemisDebut==0){
 				tabEnnemi=null;
 				madMouse = new MadMouse(map, player, xEnnemiSauve, yEnnemiSauve, this); //le boss MadMouse apparaît aux coordonnées du dernier ennemi sauvé
 			}
@@ -341,6 +341,7 @@ public class Level1 extends Level {
 		int mapLayer = map.getLayerIndex("sol");
 		float yEnnemi = 0;
 		float xEnnemi = 0;
+		Rectangle rayonRamzi;
 		for(int i = 0 ; i < nbEnnemisDebut; i ++ )
 		{
 			boolean inMap = false;
@@ -348,10 +349,11 @@ public class Level1 extends Level {
 			boolean inRamziRayon;
 			do
 			{
+				rayonRamzi = new Rectangle(this.player.getX(), this.player.getY(), 400,400);
 				inRamziRayon  = false;
 				//coordonnées de l'ennemi calculé aléatoirement
-				yEnnemi = (float)(Math.random() * (map.getHeight() * map.getTileHeight() - 0)); 
-				xEnnemi = (float)(Math.random() * (map.getWidth() * map.getTileWidth() - 0));
+				yEnnemi = (float)(Math.random() * (map.getHeight() * map.getTileHeight())); 
+				xEnnemi = (float)(Math.random() * (map.getWidth() * map.getTileWidth()));
 				
 				
 				Image tileMap = map.getTileImage((int) xEnnemi / tileW, (int) yEnnemi / tileH, mapLayer);
@@ -363,13 +365,21 @@ public class Level1 extends Level {
 				{
 					int random = (int)(Math.random() * 2 +1);
 					if(random == 1)
+					{
 						tabEnnemi.add(new Souris1(this.worldMap, map,player,xEnnemi,yEnnemi, i));
+					}
 					else
+					{
 						tabEnnemi.add(new Souris2(this.worldMap, map,player,xEnnemi,yEnnemi, i));
+					}
 				}
 				// si l'ennemi est dans la rayon autour de Ramzi, alors on refait la boucle pour le placer ailleurs. 
-				if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
+				/*if (( xEnnemi > (player.getX() - 200) && xEnnemi < (player.getX() + 200))
 						&& ( yEnnemi > (player.getY() - 200) && ( yEnnemi < player.getY() + 200))) 
+				{
+					inRamziRayon = true;
+				}*/
+				if(rayonRamzi.contains(xEnnemi, yEnnemi))
 				{
 					inRamziRayon = true;
 				}

@@ -18,7 +18,7 @@ public class Intro extends BasicGameState implements ComponentListener  {
 	private Animation animationsIntro[]= new Animation[2];
 	private int compteurAnim = 0;
 	private int id;
-	private String dialogues[] = new String[5];
+	private String dialogues[] = new String[4];
 	private Dialogue dialogue;
 	private GameContainer container;
 	public boolean afficheDialog = true;
@@ -48,7 +48,7 @@ public class Intro extends BasicGameState implements ComponentListener  {
 		if(this.afficheDialog == true) {
 			dialogue.render(g);
 			g.setColor(Color.white);
-			g.drawString("Lire : espace | Passer : echap", 600, 580);
+			g.drawString("Suivant : espace | Passer : echap", 575, 580);
 		}
 	}
 	
@@ -62,11 +62,10 @@ public class Intro extends BasicGameState implements ComponentListener  {
 	}
 
 	public void prepareDialogues() throws SlickException {
-		dialogues[0] = "Bun Nysterio : Parfois quand je ferme les yeux, je revois \nleurs grosses mains gantées m attraper par les oreilles et \nme jeter sur la table froide. La suite, je ne m en souviens \nque vaguement. La douleur infligée par leurs expériences";
-		dialogues[1] = "me rendait hystérique et totalement vide d esprit... \nJamais je n aurai espérer que quelqu’un vienne un jour nous \nlibérer de cette prison.";
-		dialogues[2] = "Mad Mouse : Ces scientifiques n ont rien pu faire face à \ncelui qu on surnomme Ramzi. Ce petit rat doué d un génie \net d une force inégalée nous a tous sauvé, mes petites \nsouris et moi-même. Jamais je ne saurais être assez";
-		dialogues[3] = "reconnaissant pour ce qu il a fait. Te souviens-tu lorsqu \nil a ...";
-		dialogues[4] = "";
+		dialogues[0] = "MadMouse : Tu te rappelles de l'état dans lequel on était \navant que Ramzi nous sauve ? ...";
+		dialogues[1] = "Bun Nysterio : Oui j'étais dans un sale état. \nHeureusement qu'il à pu absorber nos mutations ...";
+		dialogues[2] = "MadMouse : Il a sauver tellement d'animaux ce jour là ...";
+		dialogues[3] = "";
 		this.dialogue = new Dialogue(this, dialogues);
 		dialogue.init(container);
 	}

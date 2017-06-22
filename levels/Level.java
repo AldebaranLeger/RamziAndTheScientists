@@ -25,7 +25,7 @@ public abstract class Level {
 	protected TiledMap map;
 	protected Boss boss;
 	protected List<Ennemi> tabEnnemi;
-	protected int nbEnnemisDebut;
+	public int nbEnnemisDebut;
 	protected int nbEnnemisSauves;
 	protected int totalEnnemisSauves;
 	protected boolean bossArrives=false;	

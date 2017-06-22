@@ -129,7 +129,6 @@ public class Ramzi{
 		
 	}	
 
-	
 	public void render(Graphics g) throws SlickException  {
 		attaqueAnimationManagement(g);		
 		g.setColor(new Color(0,0,0, 0.5f));
